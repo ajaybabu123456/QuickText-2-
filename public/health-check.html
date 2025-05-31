@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickText Pro - Health Check</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .test-results { margin-top: 20px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 QuickText Pro - System Health Check</h1>
+    
+    <div id="status-container">
+        <div class="status info">🔄 Initializing health check...</div>
+    </div>
+    
+    <button onclick="runHealthCheck()">🔍 Run Health Check</button>
+    <button onclick="testBasicFlow()">📝 Test Basic Flow</button>
+    <button onclick="testAdvancedFeatures()">⚡ Test Advanced Features</button>
+    
+    <div class="test-results" id="results"></div>
+
+    <script>
+        const log = (message, type = 'info') => {
+            const container = document.getElementById('status-container');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+            console.log(message);
+        };
+
+        const clearStatus = () => {
+            document.getElementById('status-container').innerHTML = '';
+            document.getElementById('results').innerHTML = '';
+        };
+
+        async function runHealthCheck() {
+            clearStatus();
+            log('🔄 Starting comprehensive health check...', 'info');
+            
+            try {
+                // Check server connectivity
+                log('📡 Testing server connectivity...', 'info');
+                const response = await fetch('/');
+                if (response.ok) {
+                    log('✅ Server is responding correctly', 'success');
+                } else {
+                    log('❌ Server returned error: ' + response.status, 'error');
+                    return;
+                }
+
+                // Check API endpoints
+                log('🔗 Testing API endpoints...', 'info');
+                
+                // Test share creation
+                const shareResponse = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: 'Health check test message',
+                        contentType: 'text',
+                        duration: '15m'
+                    })
+                });
+
+                if (shareResponse.ok) {
+                    const shareData = await shareResponse.json();
+                    log(`✅ Share API working - Code: ${shareData.code}`, 'success');
+                    
+                    // Test retrieval
+                    const retrieveResponse = await fetch(`/api/retrieve/${shareData.code}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: null })
+                    });
+
+                    if (retrieveResponse.ok) {
+                        const retrieveData = await retrieveResponse.json();
+                        log('✅ Retrieve API working correctly', 'success');
+                        
+                        // Test legacy endpoint
+                        const legacyResponse = await fetch(`/api/share/${shareData.code}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: null })
+                        });
+
+                        if (legacyResponse.ok) {
+                            log('✅ Legacy endpoint working correctly', 'success');
+                        } else if (legacyResponse.status === 429) {
+                            log('⚠️ Legacy endpoint rate limited (expected)', 'warning');
+                        } else {
+                            log('❌ Legacy endpoint failed', 'error');
+                        }
+                    } else {
+                        log('❌ Retrieve API failed', 'error');
+                    }
+                } else {
+                    log('❌ Share API failed', 'error');
+                }
+
+                // Check WebSocket
+                log('🔌 Testing WebSocket connection...', 'info');
+                if (typeof io !== 'undefined') {
+                    const socket = io();
+                    socket.on('connect', () => {
+                        log('✅ WebSocket connection established', 'success');
+                        socket.disconnect();
+                    });
+                    socket.on('connect_error', () => {
+                        log('❌ WebSocket connection failed', 'error');
+                    });
+                } else {
+                    log('❌ Socket.io not loaded', 'error');
+                }
+
+                // Check libraries
+                log('📚 Checking frontend libraries...', 'info');
+                
+                const libraries = [
+                    { name: 'Alpine.js', check: () => typeof Alpine !== 'undefined' },
+                    { name: 'Socket.io', check: () => typeof io !== 'undefined' },
+                    { name: 'QRious', check: () => typeof QRious !== 'undefined' },
+                    { name: 'Prism.js', check: () => typeof Prism !== 'undefined' }
+                ];
+
+                libraries.forEach(lib => {
+                    if (lib.check()) {
+                        log(`✅ ${lib.name} loaded correctly`, 'success');
+                    } else {
+                        log(`❌ ${lib.name} not available`, 'error');
+                    }
+                });
+
+                log('🎉 Health check completed!', 'success');
+
+            } catch (error) {
+                log('❌ Health check failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testBasicFlow() {
+            clearStatus();
+            log('📝 Testing basic share and retrieve flow...', 'info');
+            
+            try {
+                const testContent = 'This is a basic flow test - ' + new Date().toISOString();
+                
+                // Create share
+                const shareResponse = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: testContent,
+                        contentType: 'text',
+                        duration: '15m'
+                    })
+                });
+
+                const shareData = await shareResponse.json();
+                log(`✅ Created share with code: ${shareData.code}`, 'success');
+
+                // Retrieve share
+                const retrieveResponse = await fetch(`/api/retrieve/${shareData.code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: null })
+                });
+
+                const retrieveData = await retrieveResponse.json();
+                
+                if (retrieveData.content === testContent) {
+                    log('✅ Content retrieved successfully and matches original', 'success');
+                    
+                    document.getElementById('results').innerHTML = `
+                        <h3>Test Results:</h3>
+                        <pre><strong>Original:</strong> ${testContent}
+<strong>Retrieved:</strong> ${retrieveData.content}
+<strong>Content Type:</strong> ${retrieveData.contentType}
+<strong>Views:</strong> ${retrieveData.views}</pre>`;
+                } else {
+                    log('❌ Retrieved content does not match original', 'error');
+                }
+
+            } catch (error) {
+                log('❌ Basic flow test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testAdvancedFeatures() {
+            clearStatus();
+            log('⚡ Testing advanced features...', 'info');
+            
+            try {
+                // Test password protection
+                log('🔒 Testing password protection...', 'info');
+                const passwordShare = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: 'Secret message!',
+                        contentType: 'text',
+                        duration: '15m',
+                        password: 'test123'
+                    })
+                });
+
+                const passwordData = await passwordShare.json();
+                log(`✅ Password-protected share created: ${passwordData.code}`, 'success');
+
+                // Try without password
+                const noPasswordAttempt = await fetch(`/api/retrieve/${passwordData.code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: null })
+                });
+
+                if (noPasswordAttempt.status === 401) {
+                    log('✅ Password protection working - access denied without password', 'success');
+                    
+                    // Try with correct password
+                    const correctPasswordAttempt = await fetch(`/api/retrieve/${passwordData.code}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: 'test123' })
+                    });
+
+                    if (correctPasswordAttempt.ok) {
+                        log('✅ Password authentication working correctly', 'success');
+                    } else {
+                        log('❌ Failed to access with correct password', 'error');
+                    }
+                } else {
+                    log('❌ Password protection not working', 'error');
+                }
+
+                // Test code type with language
+                log('💻 Testing code sharing with syntax highlighting...', 'info');
+                const codeContent = `function hello() {
+    console.log("Hello, World!");
+    return true;
+}`;
+
+                const codeShare = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: codeContent,
+                        contentType: 'code',
+                        language: 'javascript',
+                        duration: '30m'
+                    })
+                });
+
+                const codeData = await codeShare.json();
+                log(`✅ Code share created: ${codeData.code}`, 'success');
+
+                const codeRetrieve = await fetch(`/api/retrieve/${codeData.code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: null })
+                });
+
+                const retrievedCode = await codeRetrieve.json();
+                if (retrievedCode.language === 'javascript' && retrievedCode.contentType === 'code') {
+                    log('✅ Code metadata preserved correctly', 'success');
+                } else {
+                    log('❌ Code metadata not preserved', 'error');
+                }
+
+                log('🎉 Advanced features test completed!', 'success');
+
+            } catch (error) {
+                log('❌ Advanced features test failed: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-run health check on load
+        window.addEventListener('load', () => {
+            setTimeout(runHealthCheck, 1000);
+        });
+    </script>
+
+    <!-- Load Socket.io for testing -->
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+This is a test file to verify the QuickText Pro file upload functionality.
+
+Features to test:
+1. File upload (this text file)
+2. PDF upload (need to test with a PDF)
+3. View count display
+4. File download from retrieved content
+5. Large file handling (up to 10MB limit)
+
+The file upload system should now support:
+- Text files (.txt, .js, .py, .css, etc.)
+- PDF files with base64 encoding
+- Document files (.doc, .docx, .rtf)
+- File size up to 10MB on frontend, 15MB on backend
+
+View counts should increment properly and be displayed in the UI.
+Download functionality should work for all file types.

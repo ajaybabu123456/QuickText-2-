@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickText Pro - Simple Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #4ade80;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #2a2d4a;
+            border: 1px solid #4ade80;
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+        }
+        input[type="text"] {
+            width: 100%;
+            background: #2a2d4a;
+            border: 1px solid #4ade80;
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        button {
+            background: linear-gradient(45deg, #4ade80, #22d3ee);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 222, 128, 0.4);
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .result {
+            background: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        .code-display {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            color: #4ade80;
+            letter-spacing: 4px;
+            margin: 10px 0;
+        }
+        .content-display {
+            background: #2a2d4a;
+            padding: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .stats {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 QuickText Pro - Simple Interface</h1>
+    <p>This is a simple test interface to verify the basic functionality is working.</p>
+    
+    <div class="container">
+        <!-- Share Section -->
+        <div class="section">
+            <h2>📝 Share Text/Code</h2>
+            <textarea id="shareText" placeholder="Type or paste your text, code, or notes here...
+
+This is the main data entry area. You should be able to:
+• Type or paste any text
+• Upload code snippets
+• Create secure shares
+
+Try typing something now!"></textarea>
+            <div class="stats">
+                <span id="charCount">0 characters</span> • 
+                <span id="wordCount">0 words</span>
+            </div>
+            <button id="shareBtn">🚀 Generate Share Code</button>
+            <div id="shareResult" class="result">
+                <div class="code-display" id="generatedCode"></div>
+                <p>Share this code with anyone to give them access to your content!</p>
+            </div>
+        </div>
+
+        <!-- Retrieve Section -->
+        <div class="section">
+            <h2>🔍 Retrieve Content</h2>
+            <p>Enter a 4-character code to retrieve shared content:</p>
+            <input type="text" id="retrieveCode" placeholder="ABCD" maxlength="4">
+            <button id="retrieveBtn">📥 Retrieve Content</button>
+            <div id="retrieveResult" class="result">
+                <h3>Retrieved Content:</h3>
+                <div id="retrievedContent" class="content-display"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const shareText = document.getElementById('shareText');
+        const shareBtn = document.getElementById('shareBtn');
+        const shareResult = document.getElementById('shareResult');
+        const generatedCode = document.getElementById('generatedCode');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+        
+        const retrieveCode = document.getElementById('retrieveCode');
+        const retrieveBtn = document.getElementById('retrieveBtn');
+        const retrieveResult = document.getElementById('retrieveResult');
+        const retrievedContent = document.getElementById('retrievedContent');
+
+        // Update stats
+        function updateStats() {
+            const text = shareText.value;
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            
+            charCount.textContent = `${chars} characters`;
+            wordCount.textContent = `${words} words`;
+        }
+
+        // Share functionality
+        async function shareContent() {
+            const content = shareText.value.trim();
+            if (!content) {
+                alert('Please enter some content to share!');
+                return;
+            }
+
+            shareBtn.disabled = true;
+            shareBtn.textContent = '🔄 Creating Share...';
+
+            try {
+                const response = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        contentType: 'text',
+                        duration: '15m'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    generatedCode.textContent = data.code;
+                    shareResult.style.display = 'block';
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create share'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                shareBtn.disabled = false;
+                shareBtn.textContent = '🚀 Generate Share Code';
+            }
+        }
+
+        // Retrieve functionality
+        async function retrieveContent() {
+            const code = retrieveCode.value.trim().toUpperCase();
+            if (code.length !== 4) {
+                alert('Please enter a valid 4-character code!');
+                return;
+            }
+
+            retrieveBtn.disabled = true;
+            retrieveBtn.textContent = '🔄 Retrieving...';
+
+            try {
+                const response = await fetch(`/api/retrieve/${code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: null })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    retrievedContent.textContent = data.content;
+                    retrieveResult.style.display = 'block';
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to retrieve content'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                retrieveBtn.disabled = false;
+                retrieveBtn.textContent = '📥 Retrieve Content';
+            }
+        }
+
+        // Event listeners
+        shareText.addEventListener('input', updateStats);
+        shareBtn.addEventListener('click', shareContent);
+        retrieveBtn.addEventListener('click', retrieveContent);
+        
+        // Auto-uppercase retrieve code
+        retrieveCode.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Keyboard shortcuts
+        shareText.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                shareContent();
+            }
+        });
+
+        retrieveCode.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.value.length === 4) {
+                retrieveContent();
+            }
+        });
+
+        // Initialize
+        updateStats();
+
+        console.log('Simple QuickText Pro interface loaded successfully!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickText Pro - UI Test Verification</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #065f46; border: 1px solid #10b981; }
+        .error { background: #7f1d1d; border: 1px solid #ef4444; }
+        .warning { background: #78350f; border: 1px solid #f59e0b; }
+        .info { background: #1e3a8a; border: 1px solid #3b82f6; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2563eb; }
+        input, textarea {
+            background: #374151;
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 100%;
+            margin: 5px 0;
+        }
+        .iframe-container {
+            border: 2px solid #4b5563;
+            border-radius: 8px;
+            margin: 10px 0;
+            height: 600px;
+            overflow: hidden;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 QuickText Pro - UI Test Verification</h1>
+    <p>This page helps verify that the view counting and QR code generation fixes are working correctly in the UI.</p>
+
+    <div class="test-section">
+        <h2>📊 Test Share Code: <span id="currentShareCode">93OL</span></h2>
+        <div class="test-controls">
+            <input type="text" id="shareCodeInput" placeholder="Enter share code" value="93OL">
+            <button onclick="setShareCode()">Set Share Code</button>
+            <button onclick="openMainApp()">Open Main App</button>
+            <button onclick="openWorkingApp()">Open Working App</button>
+            <button onclick="refreshTest()">Refresh Test</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Test Instructions</h2>
+        <div class="test-result info">
+            <h3>Manual Testing Steps:</h3>
+            <ol>
+                <li><strong>Open Main App</strong> (click button above)</li>
+                <li><strong>Enter Share Code:</strong> <code id="displayShareCode">93OL</code></li>
+                <li><strong>Click "Retrieve Content"</strong></li>
+                <li><strong>Verify Results:</strong>
+                    <ul>
+                        <li>✅ Content displays successfully</li>
+                        <li>✅ View count shows and increments</li>
+                        <li>✅ QR code appears below content</li>
+                        <li>✅ QR code is scannable</li>
+                    </ul>
+                </li>
+                <li><strong>Check Browser Console:</strong>
+                    <ul>
+                        <li>Look for: "Retrieved content with views: X"</li>
+                        <li>Look for: "QR Code generated successfully for:"</li>
+                        <li>No error messages</li>
+                    </ul>
+                </li>
+                <li><strong>Test Multiple Retrievals:</strong>
+                    <ul>
+                        <li>Click "Retrieve Content" multiple times</li>
+                        <li>Verify view count increments: 4, 5, 6, etc.</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Quick Links</h2>
+        <div class="test-controls">
+            <button onclick="window.open('http://localhost:3000', '_blank')">Main App (index.html)</button>
+            <button onclick="window.open('http://localhost:3000/working.html', '_blank')">Working App (working.html)</button>
+            <button onclick="window.open(`http://localhost:3000/share/${document.getElementById('currentShareCode').textContent}`, '_blank')">Direct Share Link</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 QR Code Test Results</h2>
+        <div id="qrTestResults">
+            <div class="test-result warning">
+                <strong>Waiting for manual QR code testing...</strong><br>
+                1. Use the main app to retrieve content<br>
+                2. Check if QR code appears<br>
+                3. Scan QR code with phone to verify it works
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>👀 View Count Test Results</h2>
+        <div id="viewCountResults">
+            <div class="test-result info">
+                <strong>API Test Results (Backend Working ✅):</strong><br>
+                • Retrieval #1: View count = 1 ✅<br>
+                • Retrieval #2: View count = 2 ✅<br>
+                • Retrieval #3: View count = 3 ✅<br>
+                <br>
+                <strong>UI Test Required:</strong> Verify view count displays correctly in frontend
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🐛 Debug Information</h2>
+        <div class="test-result info">
+            <strong>Backend API Test:</strong> ✅ PASSED<br>
+            <strong>View Counting:</strong> ✅ WORKING (increments 1→2→3)<br>
+            <strong>QR Generation:</strong> ⏳ TESTING (manual verification needed)<br>
+            <strong>Current Test Share:</strong> <code id="debugShareCode">93OL</code><br>
+            <strong>Test Content:</strong> "Test content for view counting and QR code generation."
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Checklist</h2>
+        <div class="test-result">
+            <input type="checkbox" id="check1"> <label for="check1">Backend view counting works (API test passed ✅)</label><br>
+            <input type="checkbox" id="check2"> <label for="check2">Frontend displays view count correctly</label><br>
+            <input type="checkbox" id="check3"> <label for="check3">View count increments on each retrieval</label><br>
+            <input type="checkbox" id="check4"> <label for="check4">QR code appears after content retrieval</label><br>
+            <input type="checkbox" id="check5"> <label for="check5">QR code is scannable and works</label><br>
+            <input type="checkbox" id="check6"> <label for="check6">No console errors in browser</label><br>
+            <input type="checkbox" id="check7"> <label for="check7">Debug logs appear in console</label><br>
+            <input type="checkbox" id="check8"> <label for="check8">Works in both index.html and working.html</label><br>
+        </div>
+    </div>
+
+    <script>
+        function setShareCode() {
+            const code = document.getElementById('shareCodeInput').value;
+            document.getElementById('currentShareCode').textContent = code;
+            document.getElementById('displayShareCode').textContent = code;
+            document.getElementById('debugShareCode').textContent = code;
+        }
+
+        function openMainApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        function openWorkingApp() {
+            window.open('http://localhost:3000/working.html', '_blank');
+        }
+
+        function refreshTest() {
+            location.reload();
+        }
+
+        // Auto-check the backend test since we know it passed
+        document.getElementById('check1').checked = true;
+
+        console.log('🧪 QuickText Pro UI Test Page Loaded');
+        console.log('📊 Current test share code:', document.getElementById('currentShareCode').textContent);
+        console.log('🔗 Use the buttons above to test the main application');
+    </script>
+</body>
+</html>

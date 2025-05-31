@@ -1,0 +1,15 @@
+This is a test document for QuickText Pro file upload functionality.
+
+📋 Test Document Contents:
+- File upload testing
+- Clean display format verification
+- Download functionality testing
+
+🎯 This file will be used to test:
+1. File upload process
+2. Clean metadata display
+3. FILE_DATA preservation
+4. Download button functionality
+5. View statistics tracking
+
+✅ If you can see this content after downloading, the file upload system is working correctly!

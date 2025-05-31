@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickText Pro - Working Interface</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cosmic: {
+                            900: '#0a0a0f',
+                            800: '#1a1a2e',
+                            700: '#16213e',
+                            600: '#2a2d4a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+      <style>
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            background-attachment: fixed;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Ensure scrolling works properly */
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="main-container">
+        <div class="container mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1"><!-- Header -->
+        <div class="text-center mb-8 sm:mb-12">
+            <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-3 sm:mb-4">
+                🚀 QuickText Pro
+            </h1>
+            <p class="text-gray-300 text-sm sm:text-base">Advanced Text & Code Sharing Platform</p>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="grid lg:grid-cols-2 gap-6 lg:gap-8 max-w-7xl mx-auto">
+              <!-- Share Section -->
+            <div class="glass rounded-2xl p-6 sm:p-8 h-fit order-1">
+                <div class="flex items-start mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                        <i class="fas fa-share-alt text-xl"></i>
+                    </div>                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold leading-tight">Share Content</h2>
+                        <p class="text-gray-400 text-xs sm:text-sm mt-1 leading-relaxed">Create secure shares with custom settings</p>
+                    </div>
+                </div>
+
+                <!-- File Drop Zone -->
+                <div class="mb-6">
+                    <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-blue-500 transition-colors duration-300 cursor-pointer file-drop-zone"
+                         id="fileDropZone">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3"></i>
+                        <p class="text-lg mb-2">Drop files here to share</p>
+                        <p class="text-sm text-gray-500">Supports text files, code, PDFs, and more (max 10MB)</p>
+                        <input type="file" id="fileInput" class="hidden" 
+                               accept=".txt,.md,.js,.ts,.py,.java,.cpp,.css,.html,.json,.xml,.sql,.pdf,.doc,.docx,.rtf">
+                    </div>
+                </div>
+
+                <!-- Main Textarea - This is the data entry area you were looking for! -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2 text-gray-300">
+                        📝 Enter your text, code, or notes:
+                    </label>
+                    <textarea 
+                        id="shareContent"
+                        placeholder="✨ Type or paste your content here...
+
+🚀 Features:
+• Secure 4-character codes
+• Password protection
+• Auto-expiring shares
+• Syntax highlighting for code
+• Real-time sharing
+
+Try typing something now!"
+                        class="w-full h-48 sm:h-64 bg-cosmic-800 border-2 border-gray-600 rounded-xl p-4 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none resize-none font-mono text-sm transition-all duration-300 focus:ring-2 focus:ring-blue-500/50"
+                        ></textarea>
+                    
+                    <!-- Stats -->
+                    <div class="flex justify-between items-center mt-2 text-sm text-gray-400">
+                        <span id="stats">0 characters • 0 words</span>
+                        <div class="space-x-2">
+                            <button onclick="clearContent()" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded transition-colors">
+                                Clear
+                            </button>
+                            <button onclick="pasteContent()" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded transition-colors">
+                                Paste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Expires In:</label>
+                        <select id="expiry" class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white">
+                            <option value="5m">5 minutes</option>
+                            <option value="15m" selected>15 minutes</option>
+                            <option value="30m">30 minutes</option>
+                            <option value="1h">1 hour</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Content Type:</label>
+                        <select id="contentType" class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white">
+                            <option value="text">Text</option>
+                            <option value="code">Code</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">Password (Optional):</label>
+                    <input type="password" id="password" placeholder="Enter password to protect this share" 
+                           class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none">
+                </div>
+
+                <!-- Share Button -->
+                <button onclick="generateShare()" id="shareBtn"
+                        class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
+                    <i class="fas fa-rocket"></i>
+                    <span>Generate Share Code</span>
+                </button>
+
+                <!-- Share Result -->
+                <div id="shareResult" class="mt-6 p-6 bg-green-500/10 border border-green-500/30 rounded-xl hidden">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold mb-2">🎉 Share Created!</h3>
+                        <div class="text-4xl font-mono font-bold text-green-400 mb-4" id="generatedCode"></div>
+                        <p class="text-gray-300 mb-4">Share this code with anyone</p>
+                        <button onclick="copyCode()" class="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors">
+                            Copy Code
+                        </button>
+                    </div>
+                </div>
+            </div>            <!-- Retrieve Section -->
+            <div class="glass rounded-2xl p-6 sm:p-8 h-fit order-2">
+                <div class="flex items-start mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                        <i class="fas fa-download text-xl"></i>
+                    </div>                    <div class="flex-1 min-w-0">
+                        <h2 class="text-xl sm:text-2xl font-bold leading-tight">Retrieve Content</h2>
+                        <p class="text-gray-400 text-xs sm:text-sm mt-1 leading-relaxed">Enter a 4-character code to access shared content</p>
+                    </div>
+                </div>
+
+                <!-- Code Input -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">4-Character Code:</label>
+                    <input type="text" id="retrieveCode" placeholder="ABCD" maxlength="4"
+                           class="w-full text-center text-3xl font-mono font-bold bg-cosmic-800 border-2 border-gray-600 rounded-xl p-6 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none tracking-widest uppercase">
+                </div>
+
+                <!-- Retrieve Button -->
+                <button onclick="retrieveContent()" id="retrieveBtn"
+                        class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
+                    <i class="fas fa-search"></i>
+                    <span>Retrieve Content</span>
+                </button>
+
+                <!-- Password Input (hidden by default) -->
+                <div id="passwordPrompt" class="mt-4 hidden">
+                    <label class="block text-sm font-medium mb-2">Password Required:</label>
+                    <div class="flex space-x-2">
+                        <input type="password" id="retrievePassword" placeholder="Enter password" 
+                               class="flex-1 bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none">
+                        <button onclick="submitPassword()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors">
+                            Unlock
+                        </button>
+                    </div>
+                </div>                <!-- Retrieve Result -->
+                <div id="retrieveResult" class="mt-6 p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl hidden">
+                    <h3 class="text-xl font-bold mb-4">📄 Retrieved Content:</h3>
+                    <div id="retrievedContent" class="bg-cosmic-900 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap max-h-64 overflow-y-auto"></div>
+                    <div class="mt-4 flex space-x-2">
+                        <button onclick="copyRetrievedContent()" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors">
+                            Copy Content
+                        </button>
+                        <button onclick="downloadFileFromContent()" class="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors">
+                            <i class="fas fa-download mr-2"></i>Download
+                        </button>
+                    </div>
+                </div>
+            </div>        </div>
+        
+        <!-- Footer for scrolling test -->
+        <footer class="mt-12 text-center text-gray-400 pb-8">
+            <div class="border-t border-gray-700 pt-8 mt-8">
+                <p class="text-sm">🚀 QuickText Pro - Secure Text & Code Sharing</p>
+                <p class="text-xs mt-2">Built with modern web technologies</p>
+                <div class="mt-4 space-y-2">
+                    <p class="text-xs">✨ Features: Secure 4-character codes, Password protection, Auto-expiring shares</p>
+                    <p class="text-xs">🔒 Privacy: Your content is encrypted and automatically deleted after expiration</p>
+                    <p class="text-xs">💡 Tip: Press Ctrl+Enter in the textarea to quickly generate a share code</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    </div>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script>
+        // DOM Elements
+        const shareContentEl = document.getElementById('shareContent');
+        const statsEl = document.getElementById('stats');
+        const shareBtn = document.getElementById('shareBtn');
+        const shareResult = document.getElementById('shareResult');
+        const generatedCode = document.getElementById('generatedCode');
+        
+        const retrieveCodeEl = document.getElementById('retrieveCode');
+        const retrieveBtn = document.getElementById('retrieveBtn');
+        const passwordPrompt = document.getElementById('passwordPrompt');
+        const retrievePassword = document.getElementById('retrievePassword');
+        const retrieveResult = document.getElementById('retrieveResult');
+        const retrievedContent = document.getElementById('retrievedContent');        let currentCode = '';
+        let currentRetrievedContent = '';
+        let currentViewCount = 0;
+
+        // File handling functions
+        function initializeFileHandling() {
+            const fileDropZone = document.getElementById('fileDropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            // Click to upload
+            fileDropZone.addEventListener('click', () => fileInput.click());
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop events
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileDropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileDropZone.addEventListener(eventName, () => fileDropZone.classList.add('border-blue-500', 'bg-blue-500/10'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileDropZone.addEventListener(eventName, () => fileDropZone.classList.remove('border-blue-500', 'bg-blue-500/10'), false);
+            });
+
+            fileDropZone.addEventListener('drop', handleFileDrop, false);
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        async function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                await processFile(file);
+            }
+        }
+
+        async function handleFileDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                await processFile(files[0]);
+            }
+        }
+
+        async function processFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('File too large. Maximum size is 10MB.');
+                return;
+            }
+
+            try {
+                let content;
+                const extension = file.name.split('.').pop().toLowerCase();
+                  // Handle different file types
+                if (['pdf'].includes(extension)) {
+                    const base64 = await fileToBase64(file);
+                    content = `📄 PDF File: ${file.name}
+📊 Size: ${(file.size / 1024).toFixed(1)} KB
+📅 Uploaded: ${new Date().toLocaleString()}
+🔗 Type: PDF Document
+
+📋 This is a PDF file that can be downloaded after sharing.
+🎯 Share this content to allow others to download the original PDF file.
+
+[FILE_DATA:${base64}]`;
+                } else if (['doc', 'docx', 'rtf'].includes(extension)) {
+                    const base64 = await fileToBase64(file);
+                    content = `📄 Document File: ${file.name}
+📊 Size: ${(file.size / 1024).toFixed(1)} KB
+📅 Uploaded: ${new Date().toLocaleString()}
+🔗 Type: ${extension.toUpperCase()} Document
+
+📋 This is a document file that can be downloaded after sharing.
+🎯 Share this content to allow others to download the original document file.
+
+[FILE_DATA:${base64}]`;
+                } else {
+                    // Text files
+                    content = await readFileContent(file);
+                }
+
+                shareContentEl.value = content;
+                updateStats();
+                
+                // Auto-detect content type
+                if (['js', 'ts', 'py', 'java', 'cpp', 'css', 'html', 'json', 'xml', 'sql'].includes(extension)) {
+                    document.getElementById('contentType').value = 'code';
+                }
+
+                alert(`File "${file.name}" loaded successfully!`);
+            } catch (error) {
+                alert('Error reading file: ' + error.message);
+            }
+        }
+
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Failed to convert file to base64'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const content = shareContentEl.value;
+            const chars = content.length;
+            const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+            statsEl.textContent = `${chars} characters • ${words} words`;
+        }
+
+        // Clear content
+        function clearContent() {
+            shareContentEl.value = '';
+            updateStats();
+            shareResult.classList.add('hidden');
+        }
+
+        // Paste content
+        async function pasteContent() {
+            try {
+                const text = await navigator.clipboard.readText();
+                shareContentEl.value = text;
+                updateStats();
+            } catch (err) {
+                alert('Failed to paste from clipboard');
+            }
+        }
+
+        // Generate share
+        async function generateShare() {
+            const content = shareContentEl.value.trim();
+            if (!content) {
+                alert('Please enter some content to share!');
+                shareContentEl.focus();
+                return;
+            }
+
+            shareBtn.disabled = true;
+            shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Creating Share...</span>';
+
+            try {
+                const payload = {
+                    content: content,
+                    contentType: document.getElementById('contentType').value,
+                    duration: document.getElementById('expiry').value,
+                    password: document.getElementById('password').value || null
+                };
+
+                const response = await fetch('/api/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentCode = data.code;
+                    generatedCode.textContent = data.code;
+                    shareResult.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create share'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                shareBtn.disabled = false;
+                shareBtn.innerHTML = '<i class="fas fa-rocket"></i> <span>Generate Share Code</span>';
+            }
+        }
+
+        // Copy code
+        async function copyCode() {
+            try {
+                await navigator.clipboard.writeText(currentCode);
+                alert('Code copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy code');
+            }
+        }
+
+        // Retrieve content
+        async function retrieveContent() {
+            const code = retrieveCodeEl.value.trim().toUpperCase();
+            if (code.length !== 4) {
+                alert('Please enter a valid 4-character code!');
+                retrieveCodeEl.focus();
+                return;
+            }
+
+            retrieveBtn.disabled = true;
+            retrieveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Retrieving...</span>';
+
+            try {
+                const response = await fetch(`/api/retrieve/${code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: null })
+                });
+
+                const data = await response.json();                if (response.status === 401 && data.requiresPassword) {
+                    passwordPrompt.classList.remove('hidden');
+                    retrievePassword.focus();
+                } else if (response.ok) {
+                    displayRetrievedContent(data.content, data);
+                    passwordPrompt.classList.add('hidden');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to retrieve content'));
+                }
+            } catch (error) {
+                alert('Network error: ' + error.message);
+            } finally {
+                retrieveBtn.disabled = false;
+                retrieveBtn.innerHTML = '<i class="fas fa-search"></i> <span>Retrieve Content</span>';
+            }
+        }
+
+        // Submit password
+        async function submitPassword() {
+            const code = retrieveCodeEl.value.trim().toUpperCase();
+            const password = retrievePassword.value;
+
+            if (!password) {
+                alert('Please enter the password!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/retrieve/${code}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+
+                const data = await response.json();                if (response.ok) {
+                    displayRetrievedContent(data.content, data);
+                    passwordPrompt.classList.add('hidden');
+                    retrievePassword.value = '';
+                } else {
+                    alert('Error: ' + (data.error || 'Invalid password'));
+                }
+            } catch (error) {            alert('Network error: ' + error.message);
+            }
+        }
+
+        // Display retrieved content
+        function displayRetrievedContent(content, data = {}) {
+            currentRetrievedContent = content;
+            currentViewCount = data.views || 0;
+            
+            // Clean up the display content by hiding FILE_DATA section
+            let displayContent = content;
+            if (content.includes('[FILE_DATA:')) {
+                displayContent = content.replace(/\[FILE_DATA:[^\]]+\]/g, '[📦 File data hidden - Use download button to get the file]');
+            }
+            
+            retrievedContent.textContent = displayContent;
+            
+            // Update the result section with view count
+            const resultHeader = document.querySelector('#retrieveResult h3');
+            if (resultHeader && data.views !== undefined) {
+                resultHeader.innerHTML = `📄 Retrieved Content: <span class="text-sm text-blue-400">(${data.views} views)</span>`;
+            }
+            
+            retrieveResult.classList.remove('hidden');
+        }
+
+        // Copy retrieved content
+        async function copyRetrievedContent() {
+            try {
+                await navigator.clipboard.writeText(currentRetrievedContent);
+                alert('Content copied to clipboard!');
+            } catch (err) {
+                alert('Failed to copy content');
+            }
+        }        // Download file if it's a base64 encoded file
+        function downloadFileFromContent() {
+            if (!currentRetrievedContent) return;
+            
+            // Check if content contains base64 file data with new format
+            const pdfMatch = currentRetrievedContent.match(/📄 PDF File: (.+?)\n[\s\S]*?\[FILE_DATA:(data:application\/pdf;base64,[^\]]+)\]/);
+            const docMatch = currentRetrievedContent.match(/📄 Document File: (.+?)\n[\s\S]*?\[FILE_DATA:(data:application\/[^;]+;base64,[^\]]+)\]/);
+            
+            if (pdfMatch) {
+                const [, filename, base64Data] = pdfMatch;
+                downloadFromBase64(base64Data, filename, 'application/pdf');
+            } else if (docMatch) {
+                const [, filename, base64Data] = docMatch;
+                const mimeType = base64Data.split(';')[0].split(':')[1];
+                downloadFromBase64(base64Data, filename, mimeType);
+            } else {
+                // Download as text file
+                const blob = new Blob([currentRetrievedContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `quicktext_content_${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                alert('Content downloaded as text file!');
+            }
+        }
+
+        // Helper function to download file from base64 data
+        function downloadFromBase64(base64Data, filename, mimeType) {
+            try {
+                // Convert base64 to blob
+                const byteCharacters = atob(base64Data.split(',')[1]);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: mimeType });
+
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert(`File "${filename}" downloaded successfully!`);
+            } catch (error) {
+                console.error('Download error:', error);
+                alert('Failed to download file. It may be corrupted.');
+            }
+        }
+
+        // Event listeners
+        shareContentEl.addEventListener('input', updateStats);
+        
+        // Auto-uppercase retrieve code
+        retrieveCodeEl.addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Keyboard shortcuts
+        shareContentEl.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generateShare();
+            }
+        });
+
+        retrieveCodeEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.value.length === 4) {
+                retrieveContent();
+            }
+        });
+
+        retrievePassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                submitPassword();
+            }
+        });        // Initialize
+        updateStats();
+        shareContentEl.focus();
+        initializeFileHandling();
+
+        // Debug scrolling
+        console.log('✅ QuickText Pro interface loaded successfully!');
+        console.log('📝 You can now type in the textarea to start sharing content!');
+        console.log('📏 Page height:', document.body.scrollHeight, 'px');
+        console.log('📱 Viewport height:', window.innerHeight, 'px');
+        console.log('🔄 Scroll test: Page should be scrollable if content exceeds viewport');
+        
+        // Test scroll functionality
+        window.addEventListener('scroll', () => {
+            console.log('📍 Scroll position:', window.scrollY);
+        });
+    </script>
+</body>
+</html>

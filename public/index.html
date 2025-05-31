@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickText Pro - Advanced Text Sharing Platform</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        cosmic: {
+                            900: '#0a0a0f',
+                            800: '#1a1a2e',
+                            700: '#16213e',
+                            600: '#2a2d4a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'slide-down': 'slideDown 0.3s ease-in',
+                        'scale-in': 'scaleIn 0.4s ease-out',
+                        'nebula': 'nebula 20s ease-in-out infinite',
+                        'twinkle': 'twinkle 3s ease-in-out infinite',
+                        'meteor': 'meteor 3s linear infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Prism.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+      <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+    
+    <!-- Custom Animations -->
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            100% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideDown {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(30px); opacity: 0; }
+        }
+        @keyframes scaleIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes nebula {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(20px, -15px) rotate(90deg); }
+            50% { transform: translate(-10px, 20px) rotate(180deg); }
+            75% { transform: translate(-20px, -10px) rotate(270deg); }
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes meteor {
+            0% { transform: translateX(-100px) translateY(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(100vw) translateY(100vh); opacity: 0; }
+        }
+        
+        /* Glassmorphism Effects */
+        .glass {
+            backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(17, 25, 40, 0.75);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.125);
+        }
+        
+        .glass-light {
+            backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Cosmic Background */
+        .cosmic-bg {
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 250px 150px;
+            animation: twinkle 3s ease-in-out infinite alternate;
+        }
+        
+        .nebula {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.3;
+            animation: nebula 25s ease-in-out infinite;
+        }
+        
+        .meteor {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: linear-gradient(45deg, #fff, transparent);
+            border-radius: 50%;
+            animation: meteor 3s linear infinite;
+        }
+        
+        .meteor::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+            transform: translateX(-50px) rotate(45deg);
+        }    </style>
+    
+    <!-- Additional debugging styles -->
+    <style>
+        /* Fallback styles to ensure textarea is always visible */
+        textarea {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 200px !important;
+        }
+        
+        .cosmic-bg textarea {
+            background: rgba(26, 26, 46, 0.8) !important;
+            border: 2px solid #4ade80 !important;
+            color: white !important;
+        }
+        
+        .cosmic-bg textarea:focus {
+            border-color: #22d3ee !important;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.5) !important;
+        }
+          /* Ensure sections are visible */
+        .glass {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        /* Fix scrolling issues */
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
+        }
+        
+        body {
+            min-height: 100vh;
+        }
+        
+    </style>
+</head>
+<body class="cosmic-bg text-white" x-data="quickTextApp()">
+    <!-- Cosmic Background Elements -->
+    <div class="stars fixed inset-0 z-0"></div>
+    <div class="nebula fixed top-20 left-10 w-64 h-64 bg-blue-500 z-0"></div>
+    <div class="nebula fixed top-60 right-20 w-48 h-48 bg-purple-500 z-0"></div>
+    <div class="nebula fixed bottom-20 left-1/3 w-56 h-56 bg-cyan-400 z-0"></div>
+    
+    <!-- Meteor Effects -->
+    <div class="meteor fixed top-0 left-0 z-0" style="animation-delay: 2s;"></div>
+    <div class="meteor fixed top-0 left-0 z-0" style="animation-delay: 5s;"></div>
+    <div class="meteor fixed top-0 left-0 z-0" style="animation-delay: 8s;"></div>
+
+    <!-- Main Application Container -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Navigation Header -->
+        <nav class="glass p-6 m-6 animate-slide-up">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-4 animate-float">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center text-2xl animate-glow">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
+                            QuickText Pro
+                        </h1>
+                        <p class="text-gray-400 text-sm">Advanced Text Sharing Platform</p>
+                    </div>
+                </div>                <div class="flex items-center space-x-4">
+                    <!-- AB Logo -->
+                    <div class="glass-light p-3 rounded-lg hover:bg-white/20 transition-all duration-300 animate-float">
+                        <span class="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
+                            AB
+                        </span>
+                    </div>
+                    
+                    <div class="hidden md:flex items-center space-x-6">
+                        <div class="flex items-center space-x-2 text-green-400">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-sm">Live</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="text-center py-12 px-6 animate-slide-up">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-purple-300 bg-clip-text text-transparent animate-glow">
+                    Share Instantly
+                </h2>
+                <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                    Share text & code snippets securely with anyone, anywhere. Get a 4-character code in seconds.
+                </p>
+                
+                <!-- Feature Pills -->
+                <div class="flex flex-wrap justify-center gap-4 mb-12">
+                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.2s">
+                        <i class="fas fa-shield-alt text-green-400 mr-2"></i>
+                        End-to-End Secure
+                    </div>
+                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.4s">
+                        <i class="fas fa-clock text-yellow-400 mr-2"></i>
+                        Auto-delete in 15min
+                    </div>
+                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.6s">
+                        <i class="fas fa-code text-blue-400 mr-2"></i>
+                        4-char Access Codes
+                    </div>
+                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.8s">
+                        <i class="fas fa-bolt text-purple-400 mr-2"></i>
+                        Lightning Fast
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="max-w-7xl mx-auto px-6 pb-12">
+            <div class="grid lg:grid-cols-2 gap-8">
+                
+                <!-- Share Section -->
+                <div class="glass p-8 animate-slide-up" style="animation-delay: 0.2s">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 animate-glow">
+                            <i class="fas fa-share-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Share Content</h3>
+                            <p class="text-gray-400">Create secure shares with custom settings</p>
+                        </div>
+                    </div>
+
+                    <!-- File Drop Zone -->
+                    <div class="mb-6" 
+                         @drop.prevent="handleFileDrop($event)" 
+                         @dragover.prevent 
+                         @dragenter.prevent>
+                        <div class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center hover:border-primary-500 transition-colors duration-300 cursor-pointer"
+                             :class="isDragging ? 'border-primary-500 bg-primary-500/10' : ''"
+                             @click="$refs.fileInput.click()">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-lg mb-2">Drop files here to share</p>
+                            <p class="text-sm text-gray-500">or click to browse</p>                            <input type="file" x-ref="fileInput" @change="handleFileSelect($event)" class="hidden" 
+                                   accept=".txt,.md,.js,.ts,.py,.java,.cpp,.css,.html,.json,.xml,.sql,.pdf,.doc,.docx,.rtf">
+                        </div>
+                    </div>
+
+                    <!-- Textarea -->
+                    <div class="mb-6">
+                        <div class="relative">
+                            <textarea 
+                                x-model="shareContent" 
+                                @input="updateStats()"
+                                @keydown.ctrl.enter="shareContent && generateCode()"
+                                placeholder="✨ Paste your text, code, or notes here...
+
+🚀 Pro Tips:
+• Ctrl + Enter to quick share
+• Supports any text format
+• Drag and drop files
+• Password protect your shares"
+                                class="w-full h-64 bg-cosmic-800/50 border border-gray-600 rounded-xl p-4 text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none resize-none font-mono text-sm transition-all duration-300"
+                                :class="shareContent.length > 0 ? 'animate-glow' : ''"></textarea>
+                            
+                            <!-- Editor Controls -->
+                            <div class="absolute top-4 right-4 flex space-x-2">
+                                <button @click="clearContent()" class="glass-light p-2 rounded-lg hover:bg-white/20 transition-all duration-300" title="Clear All">
+                                    <i class="fas fa-eraser text-sm"></i>
+                                </button>
+                                <button @click="pasteFromClipboard()" class="glass-light p-2 rounded-lg hover:bg-white/20 transition-all duration-300" title="Paste">
+                                    <i class="fas fa-clipboard text-sm"></i>
+                                </button>
+                                <button @click="formatContent()" class="glass-light p-2 rounded-lg hover:bg-white/20 transition-all duration-300" title="Auto Format">
+                                    <i class="fas fa-magic text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Options -->
+                    <div class="mb-6">
+                        <button @click="showAdvanced = !showAdvanced" 
+                                class="flex items-center justify-between w-full glass-light p-4 rounded-xl hover:bg-white/20 transition-all duration-300">
+                            <div class="flex items-center">
+                                <i class="fas fa-cog mr-3"></i>
+                                <span>Advanced Options</span>
+                            </div>
+                            <i class="fas fa-chevron-down transition-transform duration-300" :class="showAdvanced ? 'rotate-180' : ''"></i>
+                        </button>
+                        
+                        <div x-show="showAdvanced" x-transition class="mt-4 space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">
+                                        <i class="fas fa-clock mr-2"></i>Expires After
+                                    </label>
+                                    <select x-model="settings.expiry" class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none">
+                                        <option value="5m">5 minutes</option>
+                                        <option value="15m">15 minutes</option>
+                                        <option value="30m">30 minutes</option>
+                                        <option value="1h">1 hour</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">
+                                        <i class="fas fa-file-code mr-2"></i>Content Type
+                                    </label>
+                                    <select x-model="settings.contentType" class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none">
+                                        <option value="text">Plain Text</option>
+                                        <option value="code">Code Snippet</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">
+                                        <i class="fas fa-code mr-2"></i>Language
+                                    </label>
+                                    <select x-model="settings.language" class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none">
+                                        <option value="">Auto-detect</option>
+                                        <option value="javascript">JavaScript</option>
+                                        <option value="python">Python</option>
+                                        <option value="java">Java</option>
+                                        <option value="cpp">C++</option>
+                                        <option value="css">CSS</option>
+                                        <option value="html">HTML</option>
+                                        <option value="sql">SQL</option>
+                                        <option value="json">JSON</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">
+                                        <i class="fas fa-eye mr-2"></i>Max Views
+                                    </label>
+                                    <input type="number" x-model="settings.maxViews" placeholder="Unlimited" min="1" max="100" 
+                                           class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    <i class="fas fa-lock mr-2"></i>Password Protection
+                                </label>
+                                <div class="relative">
+                                    <input :type="showPassword ? 'text' : 'password'" x-model="settings.password" 
+                                           placeholder="Enter password to protect this share" 
+                                           class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none pr-12">
+                                    <button @click="showPassword = !showPassword" type="button" 
+                                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                        <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" x-model="settings.oneTimeAccess" class="sr-only">
+                                    <div class="relative">
+                                        <div class="w-6 h-6 bg-cosmic-700 border-2 border-gray-600 rounded-md transition-all duration-200"
+                                             :class="settings.oneTimeAccess ? 'bg-primary-500 border-primary-500' : ''"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center"
+                                             x-show="settings.oneTimeAccess">
+                                            <i class="fas fa-check text-white text-xs"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <span class="font-medium">One-time access</span>
+                                        <p class="text-sm text-gray-400">Delete after first view</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats and Share Button -->
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-400">
+                            <span x-text="shareContent.length + ' characters'"></span>
+                            <span class="mx-2">•</span>
+                            <span x-text="shareContent.split(/\s+/).filter(w => w.length > 0).length + ' words'"></span>
+                        </div>
+                        <button @click="generateCode()" 
+                                :disabled="!shareContent.trim()" 
+                                :class="shareContent.trim() ? 'bg-gradient-to-r from-primary-500 to-purple-600 hover:from-primary-600 hover:to-purple-700 animate-glow' : 'bg-gray-600 cursor-not-allowed'"
+                                class="px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2">
+                            <i class="fas fa-rocket"></i>
+                            <span>Generate Code</span>
+                        </button>
+                    </div>
+
+                    <!-- Success Result -->
+                    <div x-show="shareResult" x-transition class="mt-8 glass-light p-6 rounded-xl">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-scale-in">
+                                <i class="fas fa-check text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-xl font-bold">🎉 Your Code is Ready!</h4>
+                                <p class="text-gray-400">Share this code with anyone</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-cosmic-900/50 rounded-xl p-6 mb-6">
+                            <div class="text-center">
+                                <p class="text-sm text-gray-400 mb-2">Share Code</p>
+                                <div class="text-6xl font-mono font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent mb-4" 
+                                     x-text="shareResult?.code"></div>
+                                <button @click="copyToClipboard(shareResult?.code)" 
+                                        class="glass-light px-6 py-3 rounded-lg hover:bg-white/20 transition-all duration-300">
+                                    <i class="fas fa-copy mr-2"></i>Copy Code
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- QR Code and URL -->
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="text-center">
+                                <div class="w-32 h-32 bg-white rounded-xl mx-auto mb-3 p-2">
+                                    <div x-ref="qrcode" class="w-full h-full"></div>
+                                </div>
+                                <p class="text-sm text-gray-400">QR Code</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Direct Link:</label>
+                                <div class="flex">
+                                    <input type="text" :value="shareResult?.url" readonly 
+                                           class="flex-1 bg-cosmic-800 border border-gray-600 rounded-l-lg p-3 text-sm text-white">
+                                    <button @click="copyToClipboard(shareResult?.url)" 
+                                            class="bg-primary-500 hover:bg-primary-600 px-4 rounded-r-lg transition-colors duration-300">
+                                        <i class="fas fa-link"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Share Stats -->                        <div class="flex flex-wrap justify-center gap-4 mt-6">
+                            <div class="flex items-center text-sm">
+                                <i class="fas fa-clock mr-2 text-yellow-400"></i>
+                                <span x-text="'Expires in ' + settings.expiry"></span>
+                            </div>
+                            <div class="flex items-center text-sm">
+                                <i class="fas fa-eye mr-2 text-blue-400"></i>
+                                <span x-text="(shareResult?.views !== undefined ? shareResult.views + ' views' : '0 views')"></span>
+                            </div>
+                            <div x-show="settings.password" class="flex items-center text-sm">
+                                <i class="fas fa-lock mr-2 text-green-400"></i>
+                                <span>Password Protected</span>
+                            </div>
+                            <div x-show="settings.oneTimeAccess" class="flex items-center text-sm">
+                                <i class="fas fa-fire mr-2 text-red-400"></i>
+                                <span>One-time Access</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Retrieve Section -->
+                <div class="glass p-8 animate-slide-up" style="animation-delay: 0.4s">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mr-4 animate-glow">
+                            <i class="fas fa-download text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Retrieve Content</h3>
+                            <p class="text-gray-400">Enter a 4-character code to access shared content</p>
+                        </div>
+                    </div>
+
+                    <!-- Code Input -->
+                    <div class="mb-6">
+                        <div class="flex space-x-4">
+                            <div class="flex-1">
+                                <input type="text" x-model="retrieveCode" @input="retrieveCode = retrieveCode.toUpperCase()" 
+                                       maxlength="4" placeholder="CODE"
+                                       @keydown.enter="retrieveCode.length === 4 && retrieveContent()"
+                                       class="w-full text-center text-4xl font-mono font-bold bg-cosmic-800/50 border-2 border-gray-600 rounded-xl p-6 text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none tracking-widest transition-all duration-300"
+                                       :class="retrieveCode.length === 4 ? 'animate-glow border-primary-500' : ''">
+                            </div>
+                            <button @click="retrieveContent()" 
+                                    :disabled="retrieveCode.length !== 4" 
+                                    :class="retrieveCode.length === 4 ? 'bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 animate-glow' : 'bg-gray-600 cursor-not-allowed'"
+                                    class="px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2 whitespace-nowrap">
+                                <i class="fas fa-search"></i>
+                                <span>Retrieve</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Password Prompt -->
+                    <div x-show="showPasswordPrompt" x-transition class="mb-6 glass-light p-6 rounded-xl">
+                        <div class="text-center mb-4">
+                            <i class="fas fa-lock text-4xl text-yellow-400 mb-4"></i>
+                            <h4 class="text-xl font-bold">Password Required</h4>
+                            <p class="text-gray-400">This share is password protected</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <input :type="showRetrievePassword ? 'text' : 'password'" x-model="retrievePassword" 
+                                       placeholder="Enter password" 
+                                       @keydown.enter="submitPassword()"
+                                       class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-primary-500 focus:outline-none pr-12">
+                                <button @click="showRetrievePassword = !showRetrievePassword" type="button" 
+                                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white">
+                                    <i :class="showRetrievePassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                </button>
+                            </div>
+                            <div class="flex space-x-3">
+                                <button @click="submitPassword()" class="flex-1 bg-primary-500 hover:bg-primary-600 py-3 rounded-lg font-semibold transition-colors duration-300">
+                                    <i class="fas fa-unlock mr-2"></i>Unlock
+                                </button>
+                                <button @click="cancelPassword()" class="flex-1 bg-gray-600 hover:bg-gray-700 py-3 rounded-lg font-semibold transition-colors duration-300">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Retrieved Content -->                    <div x-show="retrievedContent" x-transition class="glass-light p-6 rounded-xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-xl font-bold">
+                                <i class="fas fa-file-alt mr-2"></i>Retrieved Content
+                            </h4>
+                            <div class="flex space-x-4 text-sm text-gray-400">
+                                <span x-text="retrievedContent?.content?.length + ' characters'"></span>
+                                <span x-text="retrievedContent?.type"></span>
+                                <span x-show="retrievedContent?.language" x-text="retrievedContent?.language"></span>
+                                <span class="text-blue-400 font-medium" x-text="(retrievedContent?.views !== undefined ? retrievedContent.views + ' views' : '')"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <pre class="bg-cosmic-900/50 rounded-xl p-4 text-sm overflow-x-auto max-h-96 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"><code x-text="retrievedContent?.content" :class="'language-' + (retrievedContent?.language || 'text')"></code></pre>
+                            
+                            <!-- Action Buttons -->
+                            <div class="absolute top-4 right-4 flex space-x-2">
+                                <button @click="copyToClipboard(retrievedContent?.content)" 
+                                        class="glass-light p-2 rounded-lg hover:bg-white/20 transition-all duration-300" title="Copy All">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button @click="downloadContent()" 
+                                        class="glass-light p-2 rounded-lg hover:bg-white/20 transition-all duration-300" title="Download">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Real-time indicator -->
+                        <div x-show="isConnected" class="flex items-center justify-center mt-4 text-green-400">
+                            <i class="fas fa-wifi mr-2"></i>
+                            <span class="text-sm">Connected - Real-time updates enabled</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 glass m-6 p-6 animate-slide-up">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="text-center md:text-left mb-4 md:mb-0">
+                        <p class="text-gray-400 mb-1">
+                            <i class="fas fa-database mr-2"></i>Zero database storage - Everything cached in RAM
+                        </p>
+                        <p class="text-gray-400">
+                            <i class="fas fa-shield-alt mr-2"></i>Privacy-first design with automatic data deletion
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-6">
+                        <a href="#" class="flex items-center text-gray-400 hover:text-white transition-colors duration-300">
+                            <i class="fab fa-github mr-2"></i>
+                            <span>Open Source</span>
+                        </a>
+                        <div class="flex items-center text-green-400">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2"></div>
+                            <span class="text-sm">System Operational</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <script src="main.js"></script>
+</body>
+</html>
