@@ -65,9 +65,9 @@ const isRateLimited = (ip) => {
     if (recentRequests.length >= maxRequests) {
         return true;
     }
-    
-    recentRequests.push(now);
-    requestCounts.set(ip, recentRequests);    return false;
+      recentRequests.push(now);
+    requestCounts.set(ip, recentRequests);
+    return false;
 };
 
 // Periodic cleanup of old rate limiting data
@@ -198,7 +198,8 @@ module.exports = async (req, res) => {
         } else if (url.startsWith('/api/share/') && method === 'PUT') {
             console.log('Routing to: handleUpdateShare');
             const codePath = url.split('?')[0];
-            const code = codePath.split('/').filter(part => part).pop();        console.log('Extracted code from URL:', { url, codePath, code });
+            const code = codePath.split('/').filter(part => part).pop();
+            console.log('Extracted code from URL:', { url, codePath, code });
             
             if (!code || code.length !== 4) {
                 console.log('Invalid code format:', code);
@@ -239,10 +240,12 @@ async function handleCreateShare(req, res) {
             code = generateCode();
             attempts++;
         } while (attempts < 100 && memoryShares.has(code));
-
+        
         if (attempts >= 100) {
             return res.status(500).json({ error: 'Unable to generate unique code' });
-        }        const shareData = {
+        }
+        
+        const shareData = {
             code,
             content,
             contentType: contentType || 'text',
@@ -299,7 +302,9 @@ async function handleGetShare(req, res, code) {
             console.log('Share expired:', code);
             memoryShares.delete(code);
             return res.status(404).json({ error: 'Share expired' });
-        }        // Check password protection
+        }
+        
+        // Check password protection
         if (share.password && share.password.length > 0) {
             // Parse query parameters from the URL
             const url = new URL(req.url, `http://${req.headers.host}`);
@@ -316,16 +321,20 @@ async function handleGetShare(req, res, code) {
                 return res.status(401).json({ error: 'Invalid password' });
             }
         } else {
-            console.log('Share has no password protection:', code, { 
+            console.log('Share has no password protection:', code, {
                 password: share.password, 
                 length: share.password ? share.password.length : 0 
             });
-        }// Check if max views reached
+        }
+        
+        // Check if max views reached
         if (share.maxViews > 0 && share.currentViews >= share.maxViews) {
             console.log('Share max views reached:', code);
             memoryShares.delete(code);
             return res.status(404).json({ error: 'Share has reached maximum allowed views' });
-        }        // Store current view count BEFORE incrementing
+        }
+        
+        // Store current view count BEFORE incrementing
         const currentViews = share.currentViews || 0;
 
         // Prepare response with current view count (before this access)
