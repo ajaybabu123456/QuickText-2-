@@ -28,11 +28,10 @@ jobs:
         npm test
       env:
         NODE_ENV: test
-        MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
-    
+        MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+
     - name: Deploy to Railway
-      uses: railway/cli@v2
-      with:
-        token: ${{ secrets.RAILWAY_TOKEN }}
+      run: railway deploy
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
