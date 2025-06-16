@@ -1,66 +1,147 @@
 // QuickText Pro - Alpine.js Integration
 
+// Helper function to clean content by removing FILE_DATA sections
+function cleanContentForDisplay(content) {
+    if (!content) return content;
+    
+    // Remove FILE_DATA sections while preserving other content
+    return content.replace(/\[FILE_DATA:[^\]]*\]/gs, '')
+                  .replace(/\n\s*\n\s*/g, '\n\n')
+                  .trim();
+}
+
 // Alpine.js Data Component
-function quickTextApp() {
-    return {
+function quickTextApp() {return {
         // State
         shareContent: '',
         retrieveCode: '',
         retrievePassword: '',
         shareResult: null,
         retrievedContent: null,
+        activeTab: 'share', // Active tab state
         isLoading: {
             share: false,
             retrieve: false
         },
         showAdvanced: false,
         showPasswordPrompt: false,
-        showPassword: false,        showRetrievePassword: false,        isDragging: false,
+        showPassword: false,
+        showRetrievePassword: false,
+        isDragging: false,
         isConnected: false,
         
         // Settings
         settings: {
             contentType: 'text',
-            language: '',
+            language: 'javascript',
             expiry: '15m',
-            maxViews: '',
+            maxViews: null,
             password: '',
             oneTimeAccess: false
         },
         
-        // Socket connection
-        socket: null,
-          // Initialize
+        // Settings
         init() {
             this.initializeSocket();
             this.checkUrlForCode();
-            this.initAstroBackground();        },
-        
-        // Initialize WebSocket connection
+            this.initAstroBackground();
+            this.setupKeyboardShortcuts();
+            
+            // Show keyboard shortcut tips after a short delay
+            setTimeout(() => {
+                this.showNotification('Pro Tip: Use Alt+1 for Share tab, Alt+2 for Retrieve tab', 'info');
+            }, 2000);
+        },
+          // Initialize connection
         initializeSocket() {
+            this.eventSource = null;
+            this.isConnected = false;
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 3;
+            console.log('Real-time updates ready');
+        },
+        
+        // Setup real-time updates with reconnection
+        setupRealtimeUpdates(code) {
+            this.cleanup(); // Cleanup any existing connection
+            
             try {
-                this.socket = io();
-                this.socket.on('connect', () => {
-                    console.log('Connected to server');
-                    this.isConnected = true;
-                });
+                this.eventSource = new EventSource(`/api/share/${code}`);
                 
-                this.socket.on('disconnect', () => {
-                    console.log('Disconnected from server');
+                this.eventSource.onopen = () => {
+                    this.isConnected = true;
+                    this.reconnectAttempts = 0;
+                    console.log('SSE connection established');
+                };
+                
+                this.eventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        switch(data.type) {
+                            case 'connected':
+                                this.isConnected = true;
+                                // Removed intrusive notification
+                                break;
+                                
+                            case 'update':
+                                if (this.retrievedContent?.content !== data.content) {
+                                    this.retrievedContent = {
+                                        ...this.retrievedContent,
+                                        content: data.content,
+                                        type: data.contentType
+                                    };
+                                    this.$nextTick(() => this.highlightCode());
+                                    // Removed intrusive notification for updates
+                                }
+                                break;
+                                
+                            case 'ping':
+                                // Keep connection alive, no action needed
+                                break;
+                                
+                            default:
+                                console.log('Unknown message type:', data.type);
+                        }
+                    } catch (error) {
+                        console.error('Error processing message:', error);
+                    }
+                };
+                
+                this.eventSource.onerror = (error) => {
+                    console.error('SSE connection error:', error);
                     this.isConnected = false;
-                });
-
-                this.socket.on('content-updated', (data) => {
-                    if (this.retrievedContent && data.code === this.retrieveCode) {
-                        this.retrievedContent.content = data.content;
-                        this.highlightCode();
-                        this.showNotification('Content updated in real-time!', 'info');
-                    }                });
+                    
+                    // Attempt silent reconnection
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        // Use fixed 1-second delay for quick recovery
+                        setTimeout(() => {
+                            this.setupRealtimeUpdates(code);
+                        }, 1000);
+                    } else {
+                        this.cleanup();
+                    }
+                };
+                
             } catch (error) {
-                console.warn('WebSocket connection failed:', error);
+                console.error('Error setting up SSE:', error);
+                // Only show error if all retries have failed
+                if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                    this.showNotification('Connection lost', 'error');
+                }
             }
         },
         
+        // Cleanup SSE connection
+        cleanup() {
+            if (this.eventSource) {
+                this.eventSource.close();
+                this.eventSource = null;
+            }
+            this.isConnected = false;
+        },
+
         // Check URL for share code
         checkUrlForCode() {
             const params = new URLSearchParams(window.location.search);
@@ -68,11 +149,11 @@ function quickTextApp() {
             
             if (code && code.length === 4) {
                 this.retrieveCode = code.toUpperCase();
+                this.activeTab = 'retrieve'; // Switch to retrieve tab if code is present
                 this.retrieveContent();
             }
         },
-        
-        // Generate a share code
+          // Save and share content
         async generateCode() {
             if (!this.shareContent.trim()) {
                 this.showNotification('Please enter some content to share', 'error');
@@ -81,22 +162,28 @@ function quickTextApp() {
             
             this.isLoading.share = true;
             
-            try {
-                const payload = {
+            try {                const payload = {
                     content: this.shareContent,
-                    contentType: this.settings.contentType,
-                    language: this.settings.contentType === 'code' ? this.settings.language : null,
-                    duration: this.settings.expiry,
-                    maxViews: this.settings.maxViews || null,
-                    password: this.settings.password || null,
-                    oneTimeAccess: this.settings.oneTimeAccess
+                    contentType: this.settings?.contentType || 'text',
+                    language: (this.settings?.contentType === 'code') ? this.settings?.language : null,
+                    duration: this.settings?.expiry || '15m',
+                    maxViews: this.settings?.maxViews || null,
+                    password: this.settings?.password || null,
+                    oneTimeAccess: this.settings?.oneTimeAccess || false
                 };
-                
-                const response = await fetch('/api/share', {
+                  const response = await fetch('/api/share', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
+                // Check if response is actually JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const errorText = await response.text();
+                    console.error('Non-JSON response:', errorText);
+                    throw new Error('Server returned invalid response format');
+                }
                 
                 const data = await response.json();
                 
@@ -113,16 +200,12 @@ function quickTextApp() {
                     hasPassword: !!this.settings.password,
                     oneTimeAccess: this.settings.oneTimeAccess
                 };
-                
-                // Generate QR code
+                  // Generate QR code
                 this.$nextTick(() => {
                     this.generateQRCode(this.shareResult.url);
                 });
                 
-                // Join socket room for updates
-                if (this.socket) {
-                    this.socket.emit('join-share', data.code);
-                }
+                // Note: Real-time updates disabled in serverless mode
                 
                 this.showNotification('Share code created successfully!', 'success');
             } catch (error) {
@@ -131,8 +214,7 @@ function quickTextApp() {
                 this.isLoading.share = false;
             }
         },
-        
-        // Retrieve shared content using a code
+          // Retrieve shared content using a code
         async retrieveContent() {
             if (!this.retrieveCode || this.retrieveCode.length !== 4) {
                 this.showNotification('Please enter a 4-character code', 'error');
@@ -141,48 +223,75 @@ function quickTextApp() {
             
             this.isLoading.retrieve = true;
             
-            try {
-                const response = await fetch(`/api/retrieve/${this.retrieveCode}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: this.retrievePassword || null })
+            try {                const code = this.retrieveCode.toUpperCase();
+                const url = this.retrievePassword 
+                    ? `/api/share/${code}?password=${encodeURIComponent(this.retrievePassword)}`
+                    : `/api/share/${code}`;
+                
+                console.log('Retrieving content with code:', code);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 
+                        'Accept': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    }
                 });
-                
-                const data = await response.json();
-                
-                if (response.status === 401 && data.requiresPassword) {
-                    this.showPasswordPrompt = true;
-                    this.showNotification('This content requires a password', 'info');
-                    return;
-                }
                 
                 if (!response.ok) {
-                    throw new Error(data.message || 'Failed to retrieve content');
+                    throw new Error((await response.json()).error || 'Failed to retrieve content');
+                }                const data = await response.json();
+                
+                // Clean content for display - hide FILE_DATA but preserve original for download
+                let displayContent = data.content;
+                let originalContent = data.content;
+                
+                // More robust FILE_DATA removal
+                if (displayContent && displayContent.includes('[FILE_DATA:')) {
+                    // Remove the entire FILE_DATA section and clean up extra whitespace
+                    displayContent = displayContent
+                        .replace(/\[FILE_DATA:[^\]]*\]/gs, '') // Use 'gs' flags for multiline support
+                        .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with max 2
+                        .trim();
+                    
+                    // If content is now empty or very short, show a file indicator
+                    if (displayContent.length < 10) {
+                        displayContent = `📦 File uploaded: ${data.fileName || 'File'}\n\n[Use the download button to access the file content]`;
+                    }
                 }
-                  this.retrievedContent = {
-                    content: data.content,
+                
+                this.retrievedContent = {
+                    content: displayContent,
+                    originalContent: originalContent, // Preserve original with FILE_DATA for download
                     type: data.contentType || 'text',
                     language: data.language || 'text',
-                    views: data.views || 1
+                    views: data.views || data.currentViews || 0,
+                    fileName: data.fileName || '',
+                    isFile: data.isFile || false
                 };
                 
-                console.log('Retrieved content with views:', data.views);
-                console.log('Assigned views to retrievedContent:', this.retrievedContent.views);
-                
-                // Apply syntax highlighting if it's code
                 this.$nextTick(() => {
                     this.highlightCode();
+                    // Setup real-time updates after content is loaded
+                    this.setupRealtimeUpdates(code);
                 });
-                
-                // Join socket room for updates
-                if (this.socket) {
-                    this.socket.emit('join-share', this.retrieveCode);
-                }
-                
-                this.showPasswordPrompt = false;
+                  this.showPasswordPrompt = false;
                 this.showNotification('Content retrieved successfully!', 'success');
             } catch (error) {
-                this.showNotification('Error: ' + error.message, 'error');
+                // Check if this is a password-protected share
+                if (error.message.includes('Invalid password') || error.message.includes('password')) {
+                    if (!this.retrievePassword) {
+                        // First time accessing password-protected share - show password prompt
+                        this.showPasswordPrompt = true;
+                        this.showNotification('This share is password protected. Please enter the password.', 'info');
+                    } else {
+                        // Wrong password provided
+                        this.showNotification('Incorrect password. Please try again.', 'error');
+                        this.retrievePassword = ''; // Clear wrong password
+                    }
+                } else {
+                    this.showNotification('Error: ' + error.message, 'error');
+                }
             } finally {
                 this.isLoading.retrieve = false;
             }
@@ -299,12 +408,13 @@ function quickTextApp() {
         formatContent() {
             if (!this.shareContent.trim()) return;
             
-            try {
-                // Try to format as JSON
+            try {                // Try to format as JSON
                 const json = JSON.parse(this.shareContent);
                 this.shareContent = JSON.stringify(json, null, 2);
-                this.settings.contentType = 'code';
-                this.settings.language = 'json';
+                if (this.settings) {
+                    this.settings.contentType = 'code';
+                    this.settings.language = 'json';
+                }
                 this.showNotification('Formatted as JSON', 'success');
             } catch (e) {
                 // Basic indent formatting for code
@@ -341,17 +451,27 @@ function quickTextApp() {
             }
             
             try {
-                const extension = file.name.split('.').pop().toLowerCase();
-                
-                // Handle different file types
+                const extension = file.name.split('.').pop().toLowerCase();                // Handle different file types
                 if (['pdf'].includes(extension)) {
                     const base64 = await this.fileToBase64(file);
-                    this.shareContent = `[PDF File: ${file.name}]\nSize: ${(file.size / 1024).toFixed(1)} KB\nType: PDF Document\n\nFile Data: ${base64}`;
-                    this.settings.contentType = 'text';
+                    this.shareContent = `📄 PDF File: ${file.name}
+Size: ${(file.size / 1024).toFixed(1)} KB
+Type: PDF Document
+
+[FILE_DATA:${base64}]`;
+                    if (this.settings) {
+                        this.settings.contentType = 'text';
+                    }
                 } else if (['doc', 'docx', 'rtf'].includes(extension)) {
                     const base64 = await this.fileToBase64(file);
-                    this.shareContent = `[Document File: ${file.name}]\nSize: ${(file.size / 1024).toFixed(1)} KB\nType: ${extension.toUpperCase()} Document\n\nFile Data: ${base64}`;
-                    this.settings.contentType = 'text';
+                    this.shareContent = `📄 Document File: ${file.name}
+Size: ${(file.size / 1024).toFixed(1)} KB
+Type: ${extension.toUpperCase()} Document
+
+[FILE_DATA:${base64}]`;
+                    if (this.settings) {
+                        this.settings.contentType = 'text';
+                    }
                 } else {
                     // Text files
                     const content = await this.readFileContent(file);
@@ -404,13 +524,16 @@ function quickTextApp() {
                 'sql': 'sql',
                 'md': 'markdown'
             };
-            
-            if (languageMap[extension]) {
-                this.settings.contentType = 'code';
-                this.settings.language = languageMap[extension];
+              if (languageMap[extension]) {
+                if (this.settings) {
+                    this.settings.contentType = 'code';
+                    this.settings.language = languageMap[extension];
+                }
             } else {
-                this.settings.contentType = 'text';
-            }        },
+                if (this.settings) {
+                    this.settings.contentType = 'text';
+                }
+            }},
         
         // Download retrieved content
         downloadContent() {
@@ -599,34 +722,59 @@ function quickTextApp() {
                     }, limit - (Date.now() - lastRan));
                 }
             };
-        }
+        },
+        
+        // Switch between tabs
+        switchTab(tab) {
+            if (this.activeTab === tab) return;
+            
+            this.activeTab = tab;
+            
+            // Clear any alerts or prompts
+            this.showPasswordPrompt = false;
+            this.retrievePassword = '';
+            
+            // Auto focus relevant input
+            this.$nextTick(() => {
+                if (tab === 'share') {
+                    document.querySelector('textarea[x-model="shareContent"]')?.focus();
+                } else {
+                    document.querySelector('input[x-model="retrieveCode"]')?.focus();
+                }
+            });
+        },
+
+        // Enhanced keyboard shortcuts for tab switching
+        setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Alt + 1 for Share tab
+                if (e.altKey && e.key === '1') {
+                    e.preventDefault();
+                    this.switchTab('share');
+                }
+                
+                // Alt + 2 for Retrieve tab
+                if (e.altKey && e.key === '2') {
+                    e.preventDefault();
+                    this.switchTab('retrieve');
+                }
+                
+                // Other existing shortcuts...
+            });
+        },
     };
 }
 
 // Legacy QuickTextPro class for backward compatibility
 class QuickTextPro {
     constructor() {
-        this.socket = null;
-        this.currentShareCode = null;        this.initializeSocket();
+        this.currentShareCode = null;
         this.initializeEventListeners();
         this.initializeDragAndDrop();
         this.startBackgroundAnimations();
-    }
-
-    // Initialize WebSocket connection
-    initializeSocket() {
-        try {
-            this.socket = io();
-            this.socket.on('connect', () => {
-                console.log('Connected to server');
-            });
-
-            this.socket.on('content-updated', (data) => {
-                this.handleRealtimeUpdate(data);
-            });
-        } catch (error) {
-            console.warn('WebSocket connection failed:', error);
-        }
+        
+        // Show REST API mode notification
+        console.log('QuickTextPro initialized in REST API mode (Socket.IO disabled for serverless compatibility)');
     }
 
     // Initialize all event listeners
@@ -973,17 +1121,11 @@ class QuickTextPro {
         if (oneTimeStat) {
             oneTimeStat.style.display = data.oneTimeAccess ? 'flex' : 'none';
         }
-        
-        // Set share URL
+          // Set share URL
         const shareUrl = `${window.location.origin}/?code=${data.code}`;
         const shareUrlInput = document.getElementById('shareUrl');
         if (shareUrlInput) {
             shareUrlInput.value = shareUrl;
-        }
-        
-        // Join WebSocket room for real-time updates
-        if (this.socket) {
-            this.socket.emit('join-share', data.code);
         }
         
         this.showNotification('Share created successfully!', 'success');
@@ -1046,13 +1188,14 @@ class QuickTextPro {
 
         const retrieveBtn = document.getElementById('retrieveBtn');
         const originalText = retrieveBtn.innerHTML;
-        
-        try {
+          try {
             retrieveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Retrieving...</span>';
-            retrieveBtn.disabled = true;            const response = await fetch(`/api/share/${code}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: null })
+            retrieveBtn.disabled = true;
+            
+            // No password for initial access attempt
+            const response = await fetch(`/api/share/${code}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
 
             const data = await response.json();
@@ -1096,14 +1239,12 @@ class QuickTextPro {
         const submitBtn = document.getElementById('submitPasswordBtn');
         const originalText = submitBtn.innerHTML;
         
-        try {
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Unlocking...</span>';
+        try {            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Unlocking...</span>';
             submitBtn.disabled = true;
-
-            const response = await fetch(`/api/share/${code}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+            
+            const response = await fetch(`/api/share/${code}?password=${encodeURIComponent(password)}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
 
             const data = await response.json();
@@ -1128,9 +1269,7 @@ class QuickTextPro {
         document.getElementById('passwordPrompt').style.display = 'none';
         document.getElementById('retrievePasswordInput').value = '';
         this.pendingCode = null;
-    }
-
-    // Display retrieved content with syntax highlighting
+    }    // Display retrieved content with syntax highlighting
     displayRetrievedContent(data) {
         const container = document.getElementById('retrieved-section');
         const codeElement = document.getElementById('retrievedCode');
@@ -1138,10 +1277,16 @@ class QuickTextPro {
         
         container.style.display = 'block';
         
+        // Clean content for display - hide FILE_DATA but preserve for download
+        let displayContent = data.content;
+        if (displayContent.includes('[FILE_DATA:')) {
+            displayContent = displayContent.replace(/\[FILE_DATA:[^\]]+\]/g, '[📦 File data hidden - Use download button to get the file]');
+        }
+        
         // Update metadata
         document.getElementById('contentSize').textContent = `${data.content.length} characters`;
         document.getElementById('contentType').textContent = data.contentType === 'code' ? 'Code' : 'Text';
-        document.getElementById('contentViews').textContent = `${data.views || 0} views`;
+        document.getElementById('contentViews').textContent = `${data.currentViews || 0} views`;
         
         // Show language if available
         const languageElement = document.getElementById('contentLanguage');
@@ -1153,48 +1298,21 @@ class QuickTextPro {
         // Apply syntax highlighting for code
         if (data.contentType === 'code' && data.language && typeof Prism !== 'undefined') {
             codeElement.className = `language-${data.language}`;
-            codeElement.textContent = data.content;
+            codeElement.textContent = displayContent;
             
             try {
                 Prism.highlightElement(codeElement);
             } catch (error) {
                 console.warn('Syntax highlighting failed:', error);
-                codeElement.textContent = data.content;
+                codeElement.textContent = displayContent;
             }
         } else {
             codeElement.className = '';
-            codeElement.textContent = data.content;
-        }
-        
-        // Join WebSocket room for real-time updates
-        if (this.socket && this.pendingCode) {
-            this.socket.emit('join-share', this.pendingCode);
-            document.getElementById('realtimeIndicator').style.display = 'block';
+            codeElement.textContent = displayContent;
         }
         
         this.showNotification('Content retrieved successfully!', 'success');
-    }
-
-    // Handle real-time updates
-    handleRealtimeUpdate(data) {
-        const codeElement = document.getElementById('retrievedCode');
-        if (codeElement && document.getElementById('retrieved-section').style.display !== 'none') {
-            codeElement.textContent = data.content;
-            
-            // Re-apply syntax highlighting if needed
-            if (codeElement.className && typeof Prism !== 'undefined') {
-                try {
-                    Prism.highlightElement(codeElement);
-                } catch (error) {
-                    console.warn('Syntax highlighting failed:', error);
-                }
-            }
-            
-            this.showNotification('Content updated in real-time', 'info');
-        }
-    }
-
-    // Copy to clipboard
+    }    // Copy to clipboard
     async copyToClipboard(elementId) {
         const element = document.getElementById(elementId);
         if (!element) return;

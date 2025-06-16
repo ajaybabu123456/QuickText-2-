@@ -210,6 +210,40 @@
         body {
             min-height: 100vh;
         }
+          /* Fix for content display spacing issues */
+        .content-display pre {
+            margin: 0 !important;
+            padding: 1rem !important;
+            line-height: 1.5 !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+        }
+        
+        .content-display code {
+            display: block !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+        }
+        
+        /* Additional fix for Alpine.js rendered content */
+        [x-text] {
+            white-space: pre-wrap !important;
+        }
+        
+        /* Ensure no extra spacing in pre elements */
+        pre {
+            margin: 0;
+            padding: 0;
+        }
+        
+        pre code {
+            margin: 0;
+            padding: 0;
+            background: none;
+        }
         
     </style>
 </head>
@@ -262,40 +296,31 @@
         <section class="text-center py-12 px-6 animate-slide-up">
             <div class="max-w-4xl mx-auto">
                 <h2 class="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-blue-200 to-purple-300 bg-clip-text text-transparent animate-glow">
-                    Share Instantly
-                </h2>
-                <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                    Share text & code snippets securely with anyone, anywhere. Get a 4-character code in seconds.
-                </p>
-                
-                <!-- Feature Pills -->
-                <div class="flex flex-wrap justify-center gap-4 mb-12">
-                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.2s">
-                        <i class="fas fa-shield-alt text-green-400 mr-2"></i>
-                        End-to-End Secure
-                    </div>
-                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.4s">
-                        <i class="fas fa-clock text-yellow-400 mr-2"></i>
-                        Auto-delete in 15min
-                    </div>
-                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.6s">
-                        <i class="fas fa-code text-blue-400 mr-2"></i>
-                        4-char Access Codes
-                    </div>
-                    <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.8s">
-                        <i class="fas fa-bolt text-purple-400 mr-2"></i>
-                        Lightning Fast
-                    </div>
-                </div>
+                    Share Instantly                </h2>                
             </div>
         </section>
 
         <!-- Main Content Grid -->
         <div class="max-w-7xl mx-auto px-6 pb-12">
-            <div class="grid lg:grid-cols-2 gap-8">
-                
+            <!-- Tab Navigation -->
+            <div class="flex items-center justify-center mb-8">
+                <div class="glass-light rounded-xl p-2 inline-flex">
+                    <button @click="activeTab = 'share'"
+                            class="px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                            :class="activeTab === 'share' ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : 'hover:bg-white/10'">
+                        <i class="fas fa-share-alt mr-2"></i>Share
+                    </button>
+                    <button @click="activeTab = 'retrieve'"
+                            class="px-6 py-3 rounded-lg font-semibold transition-all duration-300"
+                            :class="activeTab === 'retrieve' ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white' : 'hover:bg-white/10'">
+                        <i class="fas fa-download mr-2"></i>Retrieve
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid gap-8">
                 <!-- Share Section -->
-                <div class="glass p-8 animate-slide-up" style="animation-delay: 0.2s">
+                <div x-show="activeTab === 'share'" x-transition class="glass p-8 animate-slide-up" style="animation-delay: 0.2s">
                     <div class="flex items-center mb-6">
                         <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4 animate-glow">
                             <i class="fas fa-share-alt text-xl"></i>
@@ -323,19 +348,12 @@
 
                     <!-- Textarea -->
                     <div class="mb-6">
-                        <div class="relative">
-                            <textarea 
+                        <div class="relative">                            <textarea 
                                 x-model="shareContent" 
                                 @input="updateStats()"
                                 @keydown.ctrl.enter="shareContent && generateCode()"
-                                placeholder="✨ Paste your text, code, or notes here...
-
-🚀 Pro Tips:
-• Ctrl + Enter to quick share
-• Supports any text format
-• Drag and drop files
-• Password protect your shares"
-                                class="w-full h-64 bg-cosmic-800/50 border border-gray-600 rounded-xl p-4 text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none resize-none font-mono text-sm transition-all duration-300"
+                                placeholder="✨ Type or paste your text, code, or notes here..."
+                                class="w-full h-40 bg-cosmic-800/50 border border-gray-600 rounded-xl p-4 text-white placeholder-gray-400 focus:border-primary-500 focus:outline-none resize-none font-mono text-sm transition-all duration-300"
                                 :class="shareContent.length > 0 ? 'animate-glow' : ''"></textarea>
                             
                             <!-- Editor Controls -->
@@ -447,92 +465,86 @@
                                 </label>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Stats and Share Button -->
+                    </div>                <!-- Stats and Share Button -->
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-400">
-                            <span x-text="shareContent.length + ' characters'"></span>
-                            <span class="mx-2">•</span>
-                            <span x-text="shareContent.split(/\s+/).filter(w => w.length > 0).length + ' words'"></span>
+                        <div class="flex items-center gap-4 text-sm">
+                            <div class="flex items-center text-gray-400">
+                                <i class="fas fa-text-width mr-1.5"></i>
+                                <span x-text="shareContent.length + ' chars'"></span>
+                            </div>
+                            <div class="flex items-center text-gray-400">
+                                <i class="fas fa-font mr-1.5"></i>
+                                <span x-text="shareContent.split(/\s+/).filter(w => w.length > 0).length + ' words'"></span>
+                            </div>
+                            <!-- View count for sender -->
+                            <div x-show="shareResult?.views !== undefined" class="flex items-center" :class="shareResult?.views > 0 ? 'text-blue-400' : 'text-gray-500'">
+                                <i class="fas fa-eye mr-1.5"></i>
+                                <span x-text="shareResult.views + (shareResult.views === 1 ? ' view' : ' views')"></span>
+                            </div>
                         </div>
                         <button @click="generateCode()" 
                                 :disabled="!shareContent.trim()" 
-                                :class="shareContent.trim() ? 'bg-gradient-to-r from-primary-500 to-purple-600 hover:from-primary-600 hover:to-purple-700 animate-glow' : 'bg-gray-600 cursor-not-allowed'"
+                                :class="shareContent.trim() ? 'bg-gradient-to-r from-primary-500 to-blue-600 hover:from-primary-600 hover:to-blue-700 animate-glow' : 'bg-gray-600 cursor-not-allowed'"
                                 class="px-8 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center space-x-2">
-                            <i class="fas fa-rocket"></i>
-                            <span>Generate Code</span>
+                            <i class="fas fa-save"></i>
+                            <span>Save</span>
                         </button>
-                    </div>
+                    </div><!-- Success Result -->                    
+                    <div x-show="shareResult" x-transition class="mt-4 glass-light p-3 rounded-xl">
+                        <div class="flex items-center justify-between gap-4">                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">                                    
+                                    <h4 class="font-medium text-gray-300">Share Code</h4>
+                                    <!-- Enhanced view counter with icon and better alignment -->
+                                    <div class="flex items-center text-sm" :class="shareResult?.views > 0 ? 'text-blue-400' : 'text-gray-500'">
+                                        <i class="fas fa-eye mr-1.5"></i>
+                                        <span x-text="(shareResult?.views || '0') + (shareResult?.views === 1 ? ' view' : ' views')"></span>
+                                    </div>
+                                </div>
+                                <div class="text-4xl md:text-5xl font-mono font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent tracking-wider" 
+                                     x-text="shareResult?.code"></div>
+                                <div class="flex items-center text-xs text-gray-400 mt-1">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    <span x-text="settings.expiry"></span>
+                                    <span x-show="settings.password" class="ml-3">
+                                        <i class="fas fa-lock mr-1"></i>Protected
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <button @click="copyToClipboard(shareResult?.code)" 
+                                        class="px-3 py-2 rounded-lg bg-cosmic-800/50 hover:bg-white/10 border border-gray-600 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-copy text-sm"></i>
+                                    <span class="text-sm">Copy</span>
+                                </button>
+                                <button @click="copyToClipboard(shareResult?.url)" 
+                                        class="px-3 py-2 rounded-lg bg-cosmic-800/50 hover:bg-white/10 border border-gray-600 transition-all duration-300 flex items-center gap-2">
+                                    <i class="fas fa-link text-sm"></i>
+                                    <span class="text-sm">Link</span>
+                                </button>
+                            </div>                            </div>
+                        </div>
 
-                    <!-- Success Result -->
-                    <div x-show="shareResult" x-transition class="mt-8 glass-light p-6 rounded-xl">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center animate-scale-in">
-                                <i class="fas fa-check text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <h4 class="text-xl font-bold">🎉 Your Code is Ready!</h4>
-                                <p class="text-gray-400">Share this code with anyone</p>
-                            </div>
+                        <!-- Optional QR Code Toggle -->
+                        <div class="mt-3">
+                            <button @click="showQR = !showQR" 
+                                    class="w-full text-sm text-gray-400 hover:text-white flex items-center justify-center gap-2 py-2">
+                                <i class="fas fa-qrcode"></i>
+                                <span x-text="showQR ? 'Hide QR Code' : 'Show QR Code'"></span>
+                            </button>
                         </div>
                         
-                        <div class="bg-cosmic-900/50 rounded-xl p-6 mb-6">
-                            <div class="text-center">
-                                <p class="text-sm text-gray-400 mb-2">Share Code</p>
-                                <div class="text-6xl font-mono font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent mb-4" 
-                                     x-text="shareResult?.code"></div>
-                                <button @click="copyToClipboard(shareResult?.code)" 
-                                        class="glass-light px-6 py-3 rounded-lg hover:bg-white/20 transition-all duration-300">
-                                    <i class="fas fa-copy mr-2"></i>Copy Code
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- QR Code and URL -->
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="text-center">
-                                <div class="w-32 h-32 bg-white rounded-xl mx-auto mb-3 p-2">
-                                    <div x-ref="qrcode" class="w-full h-full"></div>
-                                </div>
-                                <p class="text-sm text-gray-400">QR Code</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm text-gray-400 mb-2">Direct Link:</label>
-                                <div class="flex">
-                                    <input type="text" :value="shareResult?.url" readonly 
-                                           class="flex-1 bg-cosmic-800 border border-gray-600 rounded-l-lg p-3 text-sm text-white">
-                                    <button @click="copyToClipboard(shareResult?.url)" 
-                                            class="bg-primary-500 hover:bg-primary-600 px-4 rounded-r-lg transition-colors duration-300">
-                                        <i class="fas fa-link"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Share Stats -->                        <div class="flex flex-wrap justify-center gap-4 mt-6">
-                            <div class="flex items-center text-sm">
-                                <i class="fas fa-clock mr-2 text-yellow-400"></i>
-                                <span x-text="'Expires in ' + settings.expiry"></span>
-                            </div>
-                            <div class="flex items-center text-sm">
-                                <i class="fas fa-eye mr-2 text-blue-400"></i>
-                                <span x-text="(shareResult?.views !== undefined ? shareResult.views + ' views' : '0 views')"></span>
-                            </div>
-                            <div x-show="settings.password" class="flex items-center text-sm">
-                                <i class="fas fa-lock mr-2 text-green-400"></i>
-                                <span>Password Protected</span>
-                            </div>
-                            <div x-show="settings.oneTimeAccess" class="flex items-center text-sm">
-                                <i class="fas fa-fire mr-2 text-red-400"></i>
-                                <span>One-time Access</span>
+                        <!-- QR Code (Collapsible) -->
+                        <div x-show="showQR" x-transition class="mt-3">
+                            <div class="w-24 h-24 bg-white rounded-lg mx-auto p-2">
+                                <div x-ref="qrcode" class="w-full h-full"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Retrieve Section -->
-                <div class="glass p-8 animate-slide-up" style="animation-delay: 0.4s">
+                <div x-show="activeTab === 'retrieve'" x-transition class="glass p-8 animate-slide-up" style="animation-delay: 0.4s">
                     <div class="flex items-center mb-6">
                         <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mr-4 animate-glow">
                             <i class="fas fa-download text-xl"></i>
@@ -592,20 +604,25 @@
                         </div>
                     </div>
 
-                    <!-- Retrieved Content -->                    <div x-show="retrievedContent" x-transition class="glass-light p-6 rounded-xl">
+                    <!-- Retrieved Content -->
+                    <div x-show="retrievedContent" x-transition class="glass p-8">
+                        <!-- Content Header with View Count -->
                         <div class="flex items-center justify-between mb-4">
-                            <h4 class="text-xl font-bold">
-                                <i class="fas fa-file-alt mr-2"></i>Retrieved Content
-                            </h4>
-                            <div class="flex space-x-4 text-sm text-gray-400">
-                                <span x-text="retrievedContent?.content?.length + ' characters'"></span>
-                                <span x-text="retrievedContent?.type"></span>
-                                <span x-show="retrievedContent?.language" x-text="retrievedContent?.language"></span>
-                                <span class="text-blue-400 font-medium" x-text="(retrievedContent?.views !== undefined ? retrievedContent.views + ' views' : '')"></span>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center" :class="retrievedContent?.views > 0 ? 'text-blue-400' : 'text-gray-500'">
+                                    <i class="fas fa-eye mr-1.5"></i>
+                                    <span x-text="retrievedContent?.views ? retrievedContent.views + (retrievedContent.views === 1 ? ' view' : ' views') : '0 views'"></span>
+                                </div>
+                                <div class="flex items-center text-gray-400">
+                                    <i class="fas fa-clock mr-1.5"></i>
+                                    <span>Expires in <span x-text="retrievedContent?.expiresIn || '15m'"></span></span>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="relative">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs bg-cosmic-800/50 border border-gray-600" 
+                                      x-text="retrievedContent?.contentType || 'text'"></span>
+                            </div>
+                        </div>                          <div class="relative content-display">
                             <pre class="bg-cosmic-900/50 rounded-xl p-4 text-sm overflow-x-auto max-h-96 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"><code x-text="retrievedContent?.content" :class="'language-' + (retrievedContent?.language || 'text')"></code></pre>
                             
                             <!-- Action Buttons -->
@@ -627,6 +644,26 @@
                             <span class="text-sm">Connected - Real-time updates enabled</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>        <!-- Feature Pills -->
+        <div class="max-w-6xl mx-auto px-6 py-8">
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.2s">
+                    <i class="fas fa-shield-alt text-green-400 mr-2"></i>
+                    End-to-End Secure
+                </div>
+                <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.4s">
+                    <i class="fas fa-clock text-yellow-400 mr-2"></i>
+                    Auto-delete in 15min
+                </div>
+                <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.6s">
+                    <i class="fas fa-code text-blue-400 mr-2"></i>
+                    4-char Access Codes
+                </div>
+                <div class="glass-light px-6 py-3 rounded-full text-sm animate-float" style="animation-delay: 0.8s">
+                    <i class="fas fa-bolt text-purple-400 mr-2"></i>
+                    Lightning Fast
                 </div>
             </div>
         </div>
@@ -655,10 +692,8 @@
                     </div>
                 </div>
             </div>
-        </footer>
-    </div>    <!-- Socket.io Client -->
-    <script src="/socket.io/socket.io.js"></script>
-    
+        </footer>    </div>
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -671,5 +706,37 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     
     <script src="main.js"></script>
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('app', () => ({
+            // ...existing code...
+
+            init() {
+                // Initialize socket.io connection
+                this.socket = io();
+                
+                // Listen for real-time view count updates
+                this.socket.on('view-count-update', (data) => {
+                    // Update view count for sender if they have the share result
+                    if (this.shareResult && this.shareResult.code === data.code) {
+                        this.shareResult.views = data.views;
+                    }
+                    
+                    // Update view count for receiver if they're viewing the content
+                    if (this.retrievedContent && this.currentCode === data.code) {
+                        this.retrievedContent.views = data.views;
+                    }
+                });
+
+                // Watch for theme changes
+                this.$watch('isDarkMode', (value) => {
+                    document.documentElement.classList.toggle('dark', value);
+                });
+            },
+            
+            // ...existing methods...
+        }));
+    });
+</script>
 </body>
 </html>
