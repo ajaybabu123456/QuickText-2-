@@ -336,21 +336,27 @@ async function handleGetShare(req, res, code) {
         
         // Store current view count BEFORE incrementing
         const currentViews = share.currentViews || 0;
+        
+        // NOW increment the view count FIRST
+        share.currentViews = currentViews + 1;
+        
+        console.log(`View count for ${code}: ${currentViews} -> ${share.currentViews}`);
 
-        // Prepare response with current view count (before this access)
+        // Update share in memory with new view count
+        memoryShares.set(code, share);
+
+        // Prepare response with UPDATED view count (including this access)
         const response = {
             code,
             content: share.content,
             contentType: share.contentType || 'text',
             language: share.language || '',
-            views: currentViews,  // Shows count BEFORE this access
+            views: share.currentViews,  // Shows count INCLUDING this access
+            currentViews: share.currentViews, // Also include currentViews for backward compatibility
             maxViews: share.maxViews || -1,
             expiry: getExpiryString(share.duration),
             expiresAt: share.expiresAt
         };
-
-        // NOW increment the view count AFTER preparing response
-        share.currentViews = currentViews + 1;
 
         // Handle one-time access or max views reached after incrementing
         if (share.oneTimeAccess || (share.maxViews > 0 && share.currentViews >= share.maxViews)) {

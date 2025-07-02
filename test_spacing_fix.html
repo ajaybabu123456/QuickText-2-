@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spacing Fix Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        /* Original styling (with gaps) */
+        .original-pre {
+            background: #2a2d4a;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #4ade80;
+            color: white;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            min-height: 100px;
+        }
+        
+        /* Fixed styling (no gaps) */
+        .fixed-pre {
+            background: #2a2d4a;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #4ade80;
+            color: white;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            min-height: 100px;
+            margin: 0;
+        }
+        
+        .fixed-pre code {
+            display: block;
+            margin: 0;
+            padding: 0;
+            background: none;
+            font-family: inherit;
+            color: inherit;
+            white-space: inherit;
+        }
+        
+        .example {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Content Display Spacing Fix Test</h1>
+        
+        <div class="example">
+            <h3>❌ Before Fix (with unwanted gaps):</h3>
+            <pre class="original-pre">
+                <code>Test content to check for gaps in display</code>
+            </pre>
+        </div>
+        
+        <div class="example">
+            <h3>✅ After Fix (no gaps):</h3>
+            <pre class="fixed-pre"><code>Test content to check for gaps in display</code></pre>
+        </div>
+        
+        <div class="example">
+            <h3>📝 Test with longer content:</h3>
+            <pre class="fixed-pre"><code>This is a longer piece of content
+that spans multiple lines
+and should display without
+any unwanted spacing or gaps
+around the edges of the content area.</code></pre>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 15px; background: rgba(34, 197, 94, 0.2); border-radius: 8px;">
+            <h3>✅ Fix Applied Successfully!</h3>
+            <p>The spacing issue has been resolved by:</p>
+            <ul>
+                <li>Removing whitespace around the &lt;code&gt; element in HTML</li>
+                <li>Adding specific CSS rules for content display pre elements</li>
+                <li>Ensuring proper margin and padding reset</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

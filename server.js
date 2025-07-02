@@ -1,13 +1,10 @@
 const express = require('express');
 const http = require('http');
-const socketIo = require('socket.io');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
+const apiHandler = require('./api/index.js');
 
 // Load environment variables
 dotenv.config();
@@ -21,33 +18,9 @@ const io = socketIo(server, {
     }
 });
 
-// MongoDB Connection
-const connectDB = async () => {
-    try {
-        const conn = await mongoose.connect(
-            process.env.MONGODB_URI || 'mongodb://localhost:27017/quicktext-pro',
-            {
-                maxPoolSize: 10,
-                serverSelectionTimeoutMS: 5000,
-                socketTimeoutMS: 45000
-            }
-        );
-        
-        console.log(`🚀 MongoDB Connected: ${conn.connection.host}`);
-        console.log(`📁 Database: ${conn.connection.name}`);
-        
-        // Handle connection events
-        mongoose.connection.on('error', (error) => {
-            console.error('❌ MongoDB connection error:', error);
-        });
-
-        mongoose.connection.on('disconnected', () => {
-            console.log('⚠️ MongoDB disconnected');
-        });
-
-        mongoose.connection.on('reconnected', () => {
-            console.log('🔄 MongoDB reconnected');
-        });
+// Create Express app
+const app = express();
+const server = http.createServer(app);
 
     } catch (error) {
         console.error('❌ Error connecting to MongoDB:', error);

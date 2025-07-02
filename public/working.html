@@ -148,21 +148,20 @@ Try typing something now!"
                            class="w-full bg-cosmic-800 border border-gray-600 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none">
                 </div>
 
-                <!-- Share Button -->
-                <button onclick="generateShare()" id="shareBtn"
-                        class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
-                    <i class="fas fa-rocket"></i>
-                    <span>Generate Share Code</span>
+                <!-- Share Button -->                <button onclick="generateShare()" id="shareBtn"
+                        class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2">
+                    <i class="fas fa-save"></i>
+                    <span>Save</span>
                 </button>
 
-                <!-- Share Result -->
-                <div id="shareResult" class="mt-6 p-6 bg-green-500/10 border border-green-500/30 rounded-xl hidden">
-                    <div class="text-center">
-                        <h3 class="text-xl font-bold mb-2">🎉 Share Created!</h3>
-                        <div class="text-4xl font-mono font-bold text-green-400 mb-4" id="generatedCode"></div>
-                        <p class="text-gray-300 mb-4">Share this code with anyone</p>
-                        <button onclick="copyCode()" class="px-6 py-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors">
-                            Copy Code
+                <!-- Share Result -->                <div id="shareResult" class="mt-4 p-4 bg-green-500/10 border border-green-500/30 rounded-xl hidden">
+                    <div class="flex items-center justify-between">
+                        <div>                        <h3 class="text-lg font-bold">Share Code</h3>
+                        <div class="text-4xl md:text-5xl font-mono font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent tracking-wider py-2" id="generatedCode"></div>
+                        </div>
+                        <button onclick="copyCode()" class="h-10 px-4 bg-green-500 hover:bg-green-600 rounded-lg transition-colors flex items-center gap-2">
+                            <i class="fas fa-copy"></i>
+                            <span>Copy</span>
                         </button>
                     </div>
                 </div>
@@ -433,7 +432,7 @@ Try typing something now!"
                 alert('Network error: ' + error.message);
             } finally {
                 shareBtn.disabled = false;
-                shareBtn.innerHTML = '<i class="fas fa-rocket"></i> <span>Generate Share Code</span>';
+                shareBtn.innerHTML = '<i class="fas fa-save"></i> <span>Save</span>';
             }
         }
 
@@ -509,9 +508,7 @@ Try typing something now!"
                 }
             } catch (error) {            alert('Network error: ' + error.message);
             }
-        }
-
-        // Display retrieved content
+        }        // Display retrieved content
         function displayRetrievedContent(content, data = {}) {
             currentRetrievedContent = content;
             currentViewCount = data.views || 0;
@@ -524,123 +521,18 @@ Try typing something now!"
             
             retrievedContent.textContent = displayContent;
             
-            // Update the result section with view count
+            // Update the result section with enhanced view count
             const resultHeader = document.querySelector('#retrieveResult h3');
-            if (resultHeader && data.views !== undefined) {
-                resultHeader.innerHTML = `📄 Retrieved Content: <span class="text-sm text-blue-400">(${data.views} views)</span>`;
-            }
-            
-            retrieveResult.classList.remove('hidden');
-        }
-
-        // Copy retrieved content
-        async function copyRetrievedContent() {
-            try {
-                await navigator.clipboard.writeText(currentRetrievedContent);
-                alert('Content copied to clipboard!');
-            } catch (err) {
-                alert('Failed to copy content');
-            }
-        }        // Download file if it's a base64 encoded file
-        function downloadFileFromContent() {
-            if (!currentRetrievedContent) return;
-            
-            // Check if content contains base64 file data with new format
-            const pdfMatch = currentRetrievedContent.match(/📄 PDF File: (.+?)\n[\s\S]*?\[FILE_DATA:(data:application\/pdf;base64,[^\]]+)\]/);
-            const docMatch = currentRetrievedContent.match(/📄 Document File: (.+?)\n[\s\S]*?\[FILE_DATA:(data:application\/[^;]+;base64,[^\]]+)\]/);
-            
-            if (pdfMatch) {
-                const [, filename, base64Data] = pdfMatch;
-                downloadFromBase64(base64Data, filename, 'application/pdf');
-            } else if (docMatch) {
-                const [, filename, base64Data] = docMatch;
-                const mimeType = base64Data.split(';')[0].split(':')[1];
-                downloadFromBase64(base64Data, filename, mimeType);
-            } else {
-                // Download as text file
-                const blob = new Blob([currentRetrievedContent], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `quicktext_content_${Date.now()}.txt`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                alert('Content downloaded as text file!');
+            if (resultHeader) {
+                const viewCountText = data.views !== undefined ? `${data.views} ${data.views === 1 ? 'view' : 'views'}` : '0 views';
+                resultHeader.innerHTML = `
+                    📄 Retrieved Content 
+                    <span class="text-sm ${data.views > 0 ? 'text-blue-400' : 'text-gray-500'} flex items-center">
+                        <i class="fas fa-eye mr-1.5"></i>${viewCountText}
+                    </span>
+                `;
             }
         }
-
-        // Helper function to download file from base64 data
-        function downloadFromBase64(base64Data, filename, mimeType) {
-            try {
-                // Convert base64 to blob
-                const byteCharacters = atob(base64Data.split(',')[1]);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: mimeType });
-
-                // Create download link
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                alert(`File "${filename}" downloaded successfully!`);
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('Failed to download file. It may be corrupted.');
-            }
-        }
-
-        // Event listeners
-        shareContentEl.addEventListener('input', updateStats);
-        
-        // Auto-uppercase retrieve code
-        retrieveCodeEl.addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        });
-
-        // Keyboard shortcuts
-        shareContentEl.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                generateShare();
-            }
-        });
-
-        retrieveCodeEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.target.value.length === 4) {
-                retrieveContent();
-            }
-        });
-
-        retrievePassword.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                submitPassword();
-            }
-        });        // Initialize
-        updateStats();
-        shareContentEl.focus();
-        initializeFileHandling();
-
-        // Debug scrolling
-        console.log('✅ QuickText Pro interface loaded successfully!');
-        console.log('📝 You can now type in the textarea to start sharing content!');
-        console.log('📏 Page height:', document.body.scrollHeight, 'px');
-        console.log('📱 Viewport height:', window.innerHeight, 'px');
-        console.log('🔄 Scroll test: Page should be scrollable if content exceeds viewport');
-        
-        // Test scroll functionality
-        window.addEventListener('scroll', () => {
-            console.log('📍 Scroll position:', window.scrollY);
-        });
     </script>
 </body>
 </html>

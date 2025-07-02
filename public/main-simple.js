@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(error.message || 'Failed to share content. Please try again.', 'error');
             } finally {
                 shareBtn.disabled = false;
-                shareBtn.innerHTML = '<i class="fas fa-share-alt"></i> Generate Code';
+                shareBtn.innerHTML = '<i class="fas fa-save"></i> Save';
             }
         };
 
@@ -529,13 +529,13 @@ class QuickShareApp {
     setupConnectionMonitoring() {
         window.addEventListener('online', () => {
             this.isOnline = true;
-            this.showToast('Connection restored', 'success');
+            // Use subtle connection status indicator instead of popup
             this.updateUIForConnection(true);
         });
         
         window.addEventListener('offline', () => {
             this.isOnline = false;
-            this.showToast('Connection lost. Check your internet.', 'error');
+            // Use subtle connection status indicator instead of popup
             this.updateUIForConnection(false);
         });
     }
@@ -543,7 +543,9 @@ class QuickShareApp {
     updateUIForConnection(isOnline) {
         const shareBtn = document.getElementById('shareBtn');
         const retrieveBtn = document.getElementById('retrieveBtn');
+        const statusEl = document.querySelector('.connection-status');
         
+        // Update buttons
         if (shareBtn) {
             shareBtn.disabled = !isOnline;
             shareBtn.title = isOnline ? 'Generate share code' : 'No internet connection';
@@ -552,6 +554,38 @@ class QuickShareApp {
         if (retrieveBtn) {
             retrieveBtn.disabled = !isOnline;
             retrieveBtn.title = isOnline ? 'Retrieve content' : 'No internet connection';
+        }
+        
+        // Update or create status indicator
+        if (!statusEl) {
+            const newStatus = document.createElement('div');
+            newStatus.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
+            newStatus.innerHTML = `
+                <i class="fas fa-${isOnline ? 'wifi' : 'wifi-slash'}"></i>
+                <span>${isOnline ? 'Connected' : 'Offline'}</span>
+            `;
+            document.body.appendChild(newStatus);
+            
+            // Auto-hide after 3 seconds if online
+            if (isOnline) {
+                setTimeout(() => {
+                    newStatus.style.opacity = '0';
+                    setTimeout(() => newStatus.remove(), 300);
+                }, 3000);
+            }
+        } else {
+            statusEl.className = `connection-status ${isOnline ? 'online' : 'offline'}`;
+            statusEl.innerHTML = `
+                <i class="fas fa-${isOnline ? 'wifi' : 'wifi-slash'}"></i>
+                <span>${isOnline ? 'Connected' : 'Offline'}</span>
+            `;
+            
+            if (isOnline) {
+                setTimeout(() => {
+                    statusEl.style.opacity = '0';
+                    setTimeout(() => statusEl.remove(), 300);
+                }, 3000);
+            }
         }
     }
 
