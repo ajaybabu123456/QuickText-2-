@@ -1,63 +1,34 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuickText Pro - Advanced Text Sharing Platform</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            900: '#1e3a8a'
-                        },
-                        cosmic: {
-                            900: '#0a0a0f',
-                            800: '#1a1a2e',
-                            700: '#16213e',
-                            600: '#2a2d4a'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'slide-up': 'slideUp 0.6s ease-out',
-                        'slide-down': 'slideDown 0.3s ease-in',
-                        'scale-in': 'scaleIn 0.4s ease-out',
-                        'nebula': 'nebula 20s ease-in-out infinite',
-                        'twinkle': 'twinkle 3s ease-in-out infinite',
-                        'meteor': 'meteor 3s linear infinite'
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <!-- Prism.js for Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickText Pro</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>QuickText Pro</h1>
+    <div class="tabs">
+      <button id="shareTab" class="active">Share</button>
+      <button id="retrieveTab">Retrieve</button>
+    </div>
+    <div id="shareSection">
+      <textarea id="shareContent" placeholder="Type or paste your text here..."></textarea>
+      <input type="file" id="fileInput">
+      <button id="shareBtn">Share</button>
+      <div id="shareResult" class="result"></div>
+    </div>
+    <div id="retrieveSection" style="display:none;">
+      <input type="text" id="retrieveCode" placeholder="Enter share code">
+      <button id="retrieveBtn">Retrieve</button>
+      <div id="retrieveResult" class="result"></div>
+    </div>
+    <div id="notification" class="notification"></div>
+  </div>
+  <script src="main-new.js"></script>
+</body>
+</html>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
